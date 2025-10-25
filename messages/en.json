@@ -1,0 +1,11 @@
+{
+  "Navbar": {
+    "home": "Home",
+    "about": "About",
+    "contact": "Contact"
+  },
+  "Hero": {
+    "title": "Welcome to Dokkan",
+    "desc": "Your favorite online bookstore."
+  }
+}
