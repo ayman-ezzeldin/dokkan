@@ -2,6 +2,7 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { LocaleDisplay } from "@/components/LocaleDisplay";
 import { Button } from "@/components/ui/button";
+import { getTranslations } from "next-intl/server";
 import Image from "next/image";
 
 export default async function Home({
@@ -11,8 +12,7 @@ export default async function Home({
 }) {
   const { locale } = await params;
 
-  const messages = (await import(`@/messages/${locale}.json`)).default;
-  const t = (key: string) => messages.Hero[key];
+  const t = await getTranslations({ locale, namespace: "Hero" });
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
@@ -40,9 +40,7 @@ export default async function Home({
           </div>
 
           <LocaleDisplay />
-
         </div>
-
       </main>
     </div>
   );
