@@ -4,6 +4,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
 import "../globals.css";
+import Navbar from "@/components/Navbar";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -59,6 +60,7 @@ export default async function LocaleLayout({
             enableSystem
             disableTransitionOnChange
           >
+            <Navbar />
             {children}
           </ThemeProvider>
         </NextIntlClientProvider>
