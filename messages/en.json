@@ -1,11 +1,24 @@
 {
   "Navbar": {
     "home": "Home",
+    "categories": "Categories",
     "about": "About",
-    "contact": "Contact"
+    "contact": "Contact",
+    "searchPlaceholder": "Search for books...",
+    "searchTitle": "Search Books",
+    "searchInputPlaceholder": "Search for books, authors, genres...",
+    "cancel": "Cancel",
+    "search": "Search",
+    "welcome": "Welcome!",
+    "exploreBooks": "Explore our books",
+    "navigation": "Navigation",
+    "bookstoreName": "Dokkan Bookstore"
   },
   "Hero": {
-    "title": "Welcome to Dokkan",
-    "desc": "Your favorite online bookstore."
+    "title": "AL Dokkan ",
+    "subtitle": "Your Books Are Here",
+    "description": "Immerse yourself in a world where every page whispers secrets and every story ignites your soul",
+    "exploreBooks": "Begin Your Journey",
+    "learnMore": "Discover More"
   }
 }

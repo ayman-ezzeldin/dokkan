@@ -27,7 +27,7 @@ export function LanguageSwitcher() {
       variant="outline"
       className="flex items-center gap-2"
     >
-      {getCurrentLocale() === "ar" ? "English" : "العربية"}
+      {getCurrentLocale() === "ar" ? "En" : "Ar"}
     </Button>
   );
 }

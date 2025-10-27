@@ -1,11 +1,24 @@
 {
   "Navbar": {
     "home": "الرئيسية",
+    "categories": "التصنيفات",
     "about": "حول",
-    "contact": "اتصل بنا"
+    "contact": "اتصل بنا",
+    "searchPlaceholder": "ابحث عن الكتب...",
+    "searchTitle": "البحث في الكتب",
+    "searchInputPlaceholder": "ابحث عن الكتب، المؤلفين، الأنواع...",
+    "cancel": "إلغاء",
+    "search": "بحث",
+    "welcome": "مرحباً!",
+    "exploreBooks": "استكشف كتبنا",
+    "navigation": "التنقل",
+    "bookstoreName": "مكتبة الدكّان"
   },
   "Hero": {
-    "title": "مرحباً بك في الدكّان",
-    "desc": "مكتبتك الإلكترونية المفضلة."
+    "title": "مكتبة الدكّان",
+    "subtitle": "كتبك عندنا",
+    "description": "اغمر نفسك في عالم حيث كل صفحة تهمس بالأسرار وكل قصة تشعل روحك",
+    "exploreBooks": "ابدأ رحلتك",
+    "learnMore": "اكتشف المزيد"
   }
 }

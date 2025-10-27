@@ -3,16 +3,19 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, Search } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/ModeToggle";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import SearchModal from "./SearchModal";
 import { navigationItems } from "./types";
 
 const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const t = useTranslations("Navbar");
 
   return (
     <div className="flex md:hidden items-center space-x-3">
@@ -43,43 +46,40 @@ const MobileNavigation = () => {
         <SheetContent side="right" className="w-[320px] sm:w-[400px] p-0">
           <div className="flex flex-col h-full">
             {/* Header with Avatar and Theme Toggle */}
-            <div className="p-6 border-b bg-linear-to-r from-primary/5 to-primary/10">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                    <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
-                    <AvatarFallback className="text-lg font-bold bg-linear-to-br from-primary/30 to-primary/10">
-                      EZ
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold text-lg">Welcome!</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Explore our books
-                    </p>
-                  </div>
+            <div className="p-6 pt-10 bg-linear-to-r from-primary/5 to-primary/10">
+              <div className="flex items-center space-x-3">
+                <Avatar className="h-12 w-12 ring-2 ring-primary/20">
+                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                  <AvatarFallback className="text-lg font-bold bg-linear-to-br from-primary/30 to-primary/10">
+                    EZ
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <h3 className="font-semibold text-lg">{t("welcome")}</h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t("exploreBooks")}
+                  </p>
                 </div>
-                <ModeToggle />
               </div>
             </div>
 
             {/* Search Section */}
-            <div className="p-6 border-b">
-              <h3 className="text-lg font-semibold mb-3">Search Books</h3>
+            <div className="p-6">
+              <h3 className="text-lg font-semibold mb-3">{t("searchTitle")}</h3>
               <SearchModal>
                 <Button
                   variant="outline"
                   className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent/50 border-border/50 hover:border-border transition-all duration-200"
                 >
                   <Search className="mr-2 h-4 w-4" />
-                  Search for books...
+                  {t("searchPlaceholder")}
                 </Button>
               </SearchModal>
             </div>
 
             {/* Navigation Links */}
             <div className="flex-1 p-6">
-              <h3 className="text-lg font-semibold mb-4">Navigation</h3>
+              <h3 className="text-lg font-semibold mb-4">{t("navigation")}</h3>
               <nav className="flex flex-col space-y-2">
                 {navigationItems.map((item) => (
                   <Link
@@ -89,7 +89,7 @@ const MobileNavigation = () => {
                     onClick={() => setIsOpen(false)}
                   >
                     <span className="relative">
-                      {item.label}
+                      {item.labelKey}
                       <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
                     </span>
                   </Link>
@@ -97,11 +97,17 @@ const MobileNavigation = () => {
               </nav>
             </div>
 
-            {/* Footer */}
-            <div className="p-6 border-t bg-muted/30">
-              <p className="text-sm text-muted-foreground text-center">
-                📚 Dokkan Bookstore
-              </p>
+            {/* Footer with Controls */}
+            <div className="p-6 bg-muted/30">
+              <div className="flex items-center justify-between mb-4">
+                <p className="text-sm text-muted-foreground">
+                  📚 {t("bookstoreName")}
+                </p>
+                <div className="flex items-center space-x-2">
+                  <ModeToggle />
+                  <LanguageSwitcher />
+                </div>
+              </div>
             </div>
           </div>
         </SheetContent>
