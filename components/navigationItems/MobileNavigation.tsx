@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Menu, Search } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,6 +16,7 @@ import { navigationItems } from "./types";
 const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("Navbar");
+  const locale = useLocale();
 
   return (
     <div className="flex md:hidden items-center space-x-3">
@@ -49,7 +50,10 @@ const MobileNavigation = () => {
             <div className="p-6 pt-10 bg-linear-to-r from-primary/5 to-primary/10">
               <div className="flex items-center space-x-3">
                 <Avatar className="h-12 w-12 ring-2 ring-primary/20">
-                  <AvatarImage src="/placeholder-avatar.jpg" alt="User" />
+                  <AvatarImage
+                    src="/images//placeholder-avatar.png"
+                    alt="User"
+                  />
                   <AvatarFallback className="text-lg font-bold bg-linear-to-br from-primary/30 to-primary/10">
                     EZ
                   </AvatarFallback>
@@ -81,19 +85,23 @@ const MobileNavigation = () => {
             <div className="flex-1 p-6">
               <h3 className="text-lg font-semibold mb-4">{t("navigation")}</h3>
               <nav className="flex flex-col space-y-2">
-                {navigationItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="flex items-center px-4 py-3 text-lg font-medium transition-all duration-200 hover:text-primary hover:bg-accent/50 rounded-lg group"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    <span className="relative">
-                      {item.labelKey}
-                      <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
-                    </span>
-                  </Link>
-                ))}
+                {navigationItems.map((item) => {
+                  const href =
+                    item.href === "/" ? `/${locale}` : `/${locale}${item.href}`;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={href}
+                      className="flex items-center px-4 py-3 text-lg font-medium transition-all duration-200 hover:text-primary hover:bg-accent/50 rounded-lg group"
+                      onClick={() => setIsOpen(false)}
+                    >
+                      <span className="relative">
+                        {t(item.labelKey)}
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-primary transition-all duration-200 group-hover:w-full"></span>
+                      </span>
+                    </Link>
+                  );
+                })}
               </nav>
             </div>
 

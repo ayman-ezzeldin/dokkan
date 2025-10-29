@@ -9,6 +9,7 @@ import {
 import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
+import { CartProvider } from "@/components/CartProvider";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 
@@ -84,8 +85,10 @@ export default async function LocaleLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <Navbar />
-            {children}
+            <CartProvider>
+              <Navbar />
+              {children}
+            </CartProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>
