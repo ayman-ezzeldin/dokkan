@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { NextRequest } from 'next/server';
 import connectDB from '@/lib/db';
 import Product from '@/models/Product';
+import mongoose from 'mongoose';
 
 export async function GET(request: NextRequest) {
   try {
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
       if (maxPrice && priceQuery) priceQuery.$lte = parseFloat(maxPrice);
     }
 
-    const sortObj: Record<string, number | { $meta: string }> = {};
+    const sortObj: Record<string, mongoose.SortOrder | { $meta: any }> = {};
     if (q) {
       sortObj.score = { $meta: 'textScore' };
     }
