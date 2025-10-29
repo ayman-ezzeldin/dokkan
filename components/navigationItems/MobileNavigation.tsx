@@ -12,11 +12,13 @@ import { ModeToggle } from "@/components/ModeToggle";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import SearchModal from "./SearchModal";
 import { navigationItems } from "./types";
+import { useSession, signOut, signIn } from "next-auth/react";
 
 const MobileNavigation = () => {
   const [isOpen, setIsOpen] = useState(false);
   const t = useTranslations("Navbar");
   const locale = useLocale();
+  const { data: session } = useSession();
 
   return (
     <div className="flex md:hidden items-center space-x-3">
@@ -116,6 +118,37 @@ const MobileNavigation = () => {
                   <LanguageSwitcher />
                 </div>
               </div>
+              {session?.user ? (
+                <div className="flex gap-2">
+                  <Link
+                    href={`/${locale}/account`}
+                    onClick={() => setIsOpen(false)}
+                    className="flex-1"
+                  >
+                    <Button className="w-full">Account</Button>
+                  </Link>
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => {
+                      setIsOpen(false);
+                      signOut({ callbackUrl: `/${locale}` });
+                    }}
+                  >
+                    Logout
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    setIsOpen(false);
+                    signIn(undefined, { callbackUrl: `/${locale}` });
+                  }}
+                >
+                  Login
+                </Button>
+              )}
             </div>
           </div>
         </SheetContent>

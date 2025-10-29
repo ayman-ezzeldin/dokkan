@@ -12,6 +12,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/components/CartProvider";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
+import AuthSessionProvider from "@/components/SessionProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -85,10 +86,12 @@ export default async function LocaleLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <CartProvider>
-              <Navbar />
-              {children}
-            </CartProvider>
+            <AuthSessionProvider>
+              <CartProvider>
+                <Navbar />
+                {children}
+              </CartProvider>
+            </AuthSessionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
       </body>

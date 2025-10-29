@@ -11,10 +11,12 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import SearchModal from "./SearchModal";
 import { navigationItems } from "./types";
 import { useEffect, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 
 const DesktopNavbar = () => {
   const t = useTranslations("Navbar");
   const locale = useLocale();
+  const { data: session } = useSession();
   return (
     <div className="hidden md:flex md:items-center md:justify-between md:w-full md:ml-8 md:gap-3">
       {/* Search Bar - Left */}
@@ -49,12 +51,39 @@ const DesktopNavbar = () => {
       <div className="flex items-center space-x-4">
         <ModeToggle />
         <LanguageSwitcher />
-        <Avatar className="h-9 w-9 ring-2 ring-border/20 hover:ring-primary/30 transition-all duration-200 cursor-pointer">
-          <AvatarImage src="/images//placeholder-avatar.png" alt="User" />
-          <AvatarFallback className="text-sm font-semibold bg-linear-to-br from-primary/20 to-primary/10">
-            EZ
-          </AvatarFallback>
-        </Avatar>
+        {session?.user ? (
+          <div className="flex items-center space-x-2">
+            <Link href={`/${locale}/account`}>
+              <Avatar className="h-9 w-9 ring-2 ring-border/20 hover:ring-primary/30 transition-all duration-200 cursor-pointer">
+                <AvatarImage
+                  src={
+                    (session.user as any).image ||
+                    "/images//placeholder-avatar.png"
+                  }
+                  alt="User"
+                />
+                <AvatarFallback className="text-sm font-semibold bg-linear-to-br from-primary/20 to-primary/10">
+                  {(session.user.name || (session.user as any).firstName || "U")
+                    .slice(0, 2)
+                    .toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+            </Link>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => signOut({ callbackUrl: `/${locale}` })}
+            >
+              Logout
+            </Button>
+          </div>
+        ) : (
+          <Link href={`/${locale}/login`}>
+            <Button variant="default" size="sm">
+              Login
+            </Button>
+          </Link>
+        )}
       </div>
     </div>
   );

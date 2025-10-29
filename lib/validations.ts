@@ -24,3 +24,20 @@ export const orderSchema = z.object({
 
 export type OrderInput = z.infer<typeof orderSchema>;
 
+export const userCreateSchema = z.object({
+  firstName: z.string().min(1),
+  lastName: z.string().min(1),
+  phoneNumber: z.string().min(5).max(20).optional(),
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+export type UserCreateInput = z.infer<typeof userCreateSchema>;
+
+export const loginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+
+export type LoginInput = z.infer<typeof loginSchema>;
+
