@@ -50,3 +50,33 @@ export const userUpdateSchema = z.object({
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
+export const productCreateSchema = z.object({
+  title: z.string().min(2),
+  slug: z.string().min(2),
+  description: z.string().min(1),
+  images: z.array(z.string().url().or(z.string().min(1))).default([]),
+  price: z.number().nonnegative(),
+  currency: z.string().min(1).default('USD'),
+  categoryId: z.string().optional(),
+  tags: z.array(z.string()).default([]),
+  stock: z.number().int().nonnegative().default(0),
+  isActive: z.boolean().default(true),
+});
+
+export type ProductCreateInput = z.infer<typeof productCreateSchema>;
+
+export const productUpdateSchema = productCreateSchema.partial();
+export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
+
+export const categoryCreateSchema = z.object({
+  name: z.string().min(2),
+  slug: z.string().min(2),
+  parentId: z.string().optional(),
+  isActive: z.boolean().default(true),
+});
+
+export type CategoryCreateInput = z.infer<typeof categoryCreateSchema>;
+
+export const categoryUpdateSchema = categoryCreateSchema.partial();
+export type CategoryUpdateInput = z.infer<typeof categoryUpdateSchema>;
+
