@@ -1,27 +1,29 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, NextRequest } from 'next/server'
 import connectDB from '@/lib/db'
 import Category from '@/models/Category'
 import { requireAdmin } from '@/app/api/admin/_utils'
 import { ZodError } from 'zod'
 import { categoryUpdateSchema } from '@/lib/validations'
 
-export async function GET(_req: Request, { params }: { params: { id: string } }) {
+export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.res
+  const { id } = await params
   await connectDB()
-  const category = await Category.findById(params.id).lean()
+  const category = await Category.findById(id).lean()
   if (!category) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ category }, { status: 200 })
 }
 
-export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.res
   try {
     const body = await request.json()
     const data = categoryUpdateSchema.parse(body)
+    const { id } = await params
     await connectDB()
-    const updated = await Category.findByIdAndUpdate(params.id, { $set: data }, { new: true }).lean()
+    const updated = await Category.findByIdAndUpdate(id, { $set: data }, { new: true }).lean()
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json({ category: updated }, { status: 200 })
   } catch (error: unknown) {
@@ -35,11 +37,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 }
 
-export async function DELETE(_req: Request, { params }: { params: { id: string } }) {
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.res
+  const { id } = await params
   await connectDB()
-  const deleted = await Category.findByIdAndDelete(params.id).lean()
+  const deleted = await Category.findByIdAndDelete(id).lean()
   if (!deleted) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({ ok: true }, { status: 200 })
 }
