@@ -5,8 +5,8 @@ export interface IUser {
   lastName: string;
   phoneNumber?: string;
   email: string;
-  passwordHash: string;
-  passwordSalt: string;
+  passwordHash?: string;
+  passwordSalt?: string;
   role: 'user' | 'admin';
   createdAt: Date;
 }
@@ -16,8 +16,8 @@ const UserSchema = new Schema<IUser>({
   lastName: { type: String, required: true, trim: true },
   phoneNumber: { type: String, trim: true },
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String, required: true },
-  passwordSalt: { type: String, required: true },
+  passwordHash: { type: String },
+  passwordSalt: { type: String },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   createdAt: { type: Date, default: Date.now },
 });

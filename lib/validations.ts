@@ -41,3 +41,12 @@ export const loginSchema = z.object({
 
 export type LoginInput = z.infer<typeof loginSchema>;
 
+export const userUpdateSchema = z.object({
+  firstName: z.string().min(1).optional(),
+  lastName: z.string().min(1).optional(),
+  phoneNumber: z.string().min(5).max(20).optional().or(z.literal('').transform(() => undefined)),
+  email: z.string().email().optional(),
+});
+
+export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
+

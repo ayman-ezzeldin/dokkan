@@ -6,8 +6,9 @@ import clientPromise from '@/lib/mongodb';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { scryptHash } from '@/lib/auth';
+import type { NextAuthOptions } from 'next-auth';
 
-const handler = NextAuth({
+export const authOptions: NextAuthOptions = {
   adapter: MongoDBAdapter(clientPromise),
   session: { strategy: 'jwt' },
   providers: [
@@ -24,6 +25,7 @@ const handler = NextAuth({
         if (!email || !password) return null;
         const user = await User.findOne({ email });
         if (!user) return null;
+        if (!user.passwordHash || !user.passwordSalt) return null;
         const hash = await scryptHash(password, user.passwordSalt);
         if (hash !== user.passwordHash) return null;
         return {
@@ -40,16 +42,16 @@ const handler = NextAuth({
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
-        token.role = (user as any).role || token.role || 'user';
-        token.firstName = (user as any).firstName ?? token.firstName;
-        token.lastName = (user as any).lastName ?? token.lastName;
-        token.phoneNumber = (user as any).phoneNumber ?? token.phoneNumber;
+        token.role = (user as any).role || (token as any).role || 'user';
+        (token as any).firstName = (user as any).firstName ?? (token as any).firstName;
+        (token as any).lastName = (user as any).lastName ?? (token as any).lastName;
+        (token as any).phoneNumber = (user as any).phoneNumber ?? (token as any).phoneNumber;
       }
       return token as any;
     },
     async session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.sub;
+        (session.user as any).id = (token as any).sub;
         (session.user as any).role = (token as any).role;
         (session.user as any).firstName = (token as any).firstName;
         (session.user as any).lastName = (token as any).lastName;
@@ -59,7 +61,9 @@ const handler = NextAuth({
     },
   },
   secret: process.env.AUTH_SECRET,
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
 

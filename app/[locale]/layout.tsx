@@ -13,6 +13,7 @@ import { CartProvider } from "@/components/CartProvider";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import AuthSessionProvider from "@/components/SessionProvider";
+import { Toaster } from "@/components/ui/sonner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -94,6 +95,7 @@ export default async function LocaleLayout({
             </AuthSessionProvider>
           </ThemeProvider>
         </NextIntlClientProvider>
+        <Toaster />
       </body>
     </html>
   );
