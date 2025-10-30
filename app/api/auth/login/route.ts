@@ -16,8 +16,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const hash = await scryptHash(data.password, user.passwordSalt);
-    if (hash !== user.passwordHash) {
+    const salt = user.passwordSalt;
+    const storedHash = user.passwordHash;
+    if (!salt || !storedHash) {
+      return NextResponse.json({ error: 'Password login unavailable for this account' }, { status: 401 });
+    }
+
+    const hash = await scryptHash(data.password, salt);
+    if (hash !== storedHash) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 

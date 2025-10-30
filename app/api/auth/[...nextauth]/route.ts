@@ -26,7 +26,8 @@ export const authOptions: NextAuthOptions = {
         const user = await User.findOne({ email });
         if (!user) return null;
         if (!user.passwordHash || !user.passwordSalt) return null;
-        const hash = await scryptHash(password, user.passwordSalt);
+        const salt = user.passwordSalt;
+        const hash = await scryptHash(password, salt);
         if (hash !== user.passwordHash) return null;
         return {
           id: user._id.toString(),
