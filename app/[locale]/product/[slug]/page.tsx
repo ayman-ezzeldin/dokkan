@@ -13,6 +13,7 @@ interface Product {
   title: string;
   slug: string;
   description: string;
+  image?: string;
   images: string[];
   price: number;
   currency: string;
@@ -95,6 +96,7 @@ export default function ProductPage() {
                 src={
                   product.images[selectedImage] ||
                   product.images[0] ||
+                  product.image ||
                   "/images/logo.png"
                 }
                 alt={product.title}

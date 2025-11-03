@@ -52,13 +52,15 @@ export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
 
 export const productCreateSchema = z.object({
   title: z.string().min(2),
-  slug: z.string().min(2),
+  slug: z.string().min(2).optional(),
   description: z.string().min(1),
+  image: z.string().url().or(z.string().min(1)),
   images: z.array(z.string().url().or(z.string().min(1))).default([]),
   price: z.number().nonnegative(),
   currency: z.string().min(1).default('USD'),
-  categoryId: z.string().optional(),
+  categoryId: z.string().min(1),
   tags: z.array(z.string()).default([]),
+  amount: z.number().int().nonnegative(),
   stock: z.number().int().nonnegative().default(0),
   isActive: z.boolean().default(true),
 });
@@ -70,7 +72,7 @@ export type ProductUpdateInput = z.infer<typeof productUpdateSchema>;
 
 export const categoryCreateSchema = z.object({
   name: z.string().min(2),
-  slug: z.string().min(2),
+  slug: z.string().min(2).optional(),
   parentId: z.string().optional(),
   isActive: z.boolean().default(true),
 });

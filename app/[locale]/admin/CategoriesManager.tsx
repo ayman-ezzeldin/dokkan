@@ -4,6 +4,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 type CategoryRow = {
   _id: string;
@@ -31,7 +39,8 @@ export default function CategoriesManager() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
-  const [slug, setSlug] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmDeleteName, setConfirmDeleteName] = useState<string>("");
 
   useEffect(() => {
     fetch("/api/admin/categories")
@@ -46,13 +55,12 @@ export default function CategoriesManager() {
       const res = await fetch("/api/admin/categories", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, slug, isActive: true }),
+        body: JSON.stringify({ name, isActive: true }),
       });
       const data = await res.json();
       if (!res.ok) throw data;
       setCategories((c) => [data.category, ...c]);
       setName("");
-      setSlug("");
       toast.success("Category created");
     } catch (e: any) {
       toast.error(extractErrorMessage(e, "Failed to create"));
@@ -73,7 +81,11 @@ export default function CategoriesManager() {
       toast.success("Deleted");
     } catch (e: any) {
       setCategories(prev);
-      toast.error(extractErrorMessage(e, "Delete failed"));
+      if (e?.count) {
+        toast.error(`This category has ${e.count} products related to it and cannot be deleted`);
+      } else {
+        toast.error(extractErrorMessage(e, "Delete failed"));
+      }
     }
   }
 
@@ -90,15 +102,7 @@ export default function CategoriesManager() {
             className="w-48"
           />
         </div>
-        <div>
-          <div className="text-xs font-medium mb-1">Slug</div>
-          <Input
-            value={slug}
-            onChange={(e) => setSlug(e.target.value)}
-            className="w-48"
-          />
-        </div>
-        <Button onClick={addCategory} disabled={!name || !slug}>
+        <Button onClick={addCategory} disabled={!name}>
           Add category
         </Button>
       </div>
@@ -120,13 +124,29 @@ export default function CategoriesManager() {
                 <td className="py-2 pr-4">{c.slug}</td>
                 <td className="py-2 pr-4">{c.isActive ? "Yes" : "No"}</td>
                 <td className="py-2 pr-4 flex gap-2">
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => remove(c._id)}
-                  >
-                    Delete
-                  </Button>
+                  <Dialog open={confirmDeleteId === c._id} onOpenChange={(v) => setConfirmDeleteId(v ? c._id : null)}>
+                    <DialogTrigger asChild>
+                      <Button size="sm" variant="destructive" onClick={() => setConfirmDeleteName(c.name)}>Delete</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Confirm delete</DialogTitle>
+                      </DialogHeader>
+                      <div className="text-sm">Are you sure you want to delete “{confirmDeleteName || c.name}”?</div>
+                      <DialogFooter>
+                        <Button variant="secondary" onClick={() => setConfirmDeleteId(null)}>Cancel</Button>
+                        <Button
+                          variant="destructive"
+                          onClick={async () => {
+                            await remove(c._id)
+                            setConfirmDeleteId(null)
+                          }}
+                        >
+                          Delete
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </td>
               </tr>
             ))}

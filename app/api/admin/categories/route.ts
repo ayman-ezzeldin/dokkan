@@ -18,9 +18,18 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.res
   try {
     const body = await request.json()
-    const data = categoryCreateSchema.parse(body)
+    const parsed = categoryCreateSchema.parse(body)
+    const makeSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
     await connectDB()
-    const created = await Category.create(data)
+    let slug = parsed.slug && parsed.slug.length > 0 ? makeSlug(parsed.slug) : makeSlug(parsed.name)
+    let candidate = slug
+    let n = 1
+    while (await Category.exists({ slug: candidate })) {
+      candidate = `${slug}-${n++}`
+    }
+    slug = candidate
+
+    const created = await Category.create({ ...parsed, slug })
     return NextResponse.json({ category: created }, { status: 201 })
   } catch (error: unknown) {
     if (error instanceof ZodError) {

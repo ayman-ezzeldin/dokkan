@@ -4,6 +4,7 @@ export interface IProduct {
   title: string;
   slug: string;
   description: string;
+  image?: string;
   images: string[];
   price: number;
   currency: string;
@@ -18,6 +19,7 @@ const ProductSchema = new Schema<IProduct>({
   title: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
   description: { type: String, required: true },
+  image: { type: String },
   images: { type: [String], default: [] },
   price: { type: Number, required: true },
   currency: { type: String, default: 'USD' },

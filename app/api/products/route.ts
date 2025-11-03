@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     const [products, total] = await Promise.all([
       Product.find(query)
-        .select('title slug description images price currency categoryId tags stock')
+        .select('title slug description image images price currency categoryId tags stock amount')
         .sort(sortObj)
         .skip(skip)
         .limit(perPage)

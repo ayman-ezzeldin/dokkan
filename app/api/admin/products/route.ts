@@ -18,8 +18,25 @@ export async function POST(request: Request) {
   if (!auth.ok) return auth.res
   try {
     const body = await request.json()
-    const data = productCreateSchema.parse(body)
+    const parsed = productCreateSchema.parse(body)
+    const makeSlug = (s: string) => s.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
+    let slug = parsed.slug && parsed.slug.length > 0 ? makeSlug(parsed.slug) : makeSlug(parsed.title)
     await connectDB()
+    let candidate = slug
+    let n = 1
+    while (await Product.exists({ slug: candidate })) {
+      candidate = `${slug}-${n++}`
+    }
+    slug = candidate
+
+    const data = {
+      ...parsed,
+      slug,
+      images: (parsed.images && parsed.images.length > 0)
+        ? parsed.images
+        : (parsed.image ? [parsed.image] : []),
+      stock: typeof parsed.amount === 'number' ? parsed.amount : parsed.stock ?? 0,
+    }
     const created = await Product.create(data)
     return NextResponse.json({ product: created }, { status: 201 })
   } catch (error: unknown) {
