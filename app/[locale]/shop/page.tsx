@@ -79,6 +79,21 @@ export default function ShopPage() {
   }, [fetchProducts]);
 
   useEffect(() => {
+    const qParam = searchParams.get("q") || "";
+    const catParam = searchParams.get("category") || "";
+    const minParam = searchParams.get("minPrice") || "";
+    const maxParam = searchParams.get("maxPrice") || "";
+    const sortParam = searchParams.get("sort") || "createdAt";
+    const pageParam = parseInt(searchParams.get("page") || "1");
+    setSearch(qParam);
+    setSelectedCategory(catParam);
+    setMinPrice(minParam);
+    setMaxPrice(maxParam);
+    setSort(sortParam);
+    setPage(pageParam);
+  }, [searchParams]);
+
+  useEffect(() => {
     fetch("/api/categories")
       .then((res) => res.json())
       .then((data) => setCategories(data))

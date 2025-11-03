@@ -5,12 +5,33 @@ import { requireAdmin } from '@/app/api/admin/_utils'
 import { ZodError } from 'zod'
 import { productCreateSchema } from '@/lib/validations'
 
-export async function GET() {
+export async function GET(request: Request) {
   const auth = await requireAdmin()
   if (!auth.ok) return auth.res
   await connectDB()
-  const products = await Product.find({}).lean()
-  return NextResponse.json({ products }, { status: 200 })
+  const { searchParams } = new URL(request.url)
+  const page = Math.max(parseInt(searchParams.get('page') || '1', 10), 1)
+  const pageSize = Math.min(Math.max(parseInt(searchParams.get('pageSize') || '10', 10), 1), 100)
+  const q = (searchParams.get('q') || '').trim()
+
+  const filter: any = {}
+  if (q) {
+    const regex = { $regex: q, $options: 'i' }
+    filter.$or = [
+      { title: regex },
+      { slug: regex },
+      { description: regex },
+    ]
+  }
+
+  const total = await Product.countDocuments(filter)
+  const products = await Product.find(filter)
+    .sort({ createdAt: -1 })
+    .skip((page - 1) * pageSize)
+    .limit(pageSize)
+    .lean()
+
+  return NextResponse.json({ products, page, pageSize, total }, { status: 200 })
 }
 
 export async function POST(request: Request) {

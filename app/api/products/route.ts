@@ -20,7 +20,12 @@ export async function GET(request: NextRequest) {
     const query: Record<string, unknown> = { isActive: true };
 
     if (q) {
-      (query as Record<string, { $search: string }>).$text = { $search: q };
+      const regex = { $regex: q, $options: 'i' } as any;
+      (query as any).$or = [
+        { title: regex },
+        { slug: regex },
+        { description: regex },
+      ];
     }
 
     if (category) {
@@ -34,10 +39,7 @@ export async function GET(request: NextRequest) {
       if (maxPrice && priceQuery) priceQuery.$lte = parseFloat(maxPrice);
     }
 
-    const sortObj: Record<string, mongoose.SortOrder | { $meta: any }> = {};
-    if (q) {
-      sortObj.score = { $meta: 'textScore' };
-    }
+    const sortObj: Record<string, mongoose.SortOrder> = {};
     if (sort === 'price') {
       sortObj.price = 1;
     } else {

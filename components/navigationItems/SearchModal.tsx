@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, X } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,17 +22,32 @@ interface SearchModalProps {
 const SearchModal = ({ children }: SearchModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [results, setResults] = useState<{ _id: string; title: string; slug: string; images?: string[] }[]>([]);
+  const [loading, setLoading] = useState(false);
   const t = useTranslations("Navbar");
+  const router = useRouter();
+  const locale = useLocale();
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      // TODO: Implement search functionality
-      console.log("Searching for:", searchQuery);
-      setIsOpen(false);
-      setSearchQuery("");
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q) {
+      setResults([]);
+      return;
     }
-  };
+    const t = setTimeout(async () => {
+      try {
+        setLoading(true);
+        const res = await fetch(`/api/products?q=${encodeURIComponent(q)}&perPage=6`);
+        const data = await res.json();
+        setResults(data.products || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 250);
+    return () => clearTimeout(t);
+  }, [searchQuery]);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -50,7 +66,7 @@ const SearchModal = ({ children }: SearchModalProps) => {
             <X className="h-4 w-4" />
           </Button>
         </DialogHeader>
-        <form onSubmit={handleSearch} className="space-y-4">
+        <div className="space-y-3">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -62,24 +78,40 @@ const SearchModal = ({ children }: SearchModalProps) => {
               autoFocus
             />
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setIsOpen(false)}
-              className="border-border/50 hover:border-border"
-            >
-              {t("cancel")}
-            </Button>
-            <Button
-              type="submit"
-              disabled={!searchQuery.trim()}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {t("search")}
-            </Button>
-          </div>
-        </form>
+          {searchQuery.trim() ? (
+            <div className="border rounded-md max-h-80 overflow-auto divide-y">
+              {loading ? (
+                <div className="p-3 text-sm text-muted-foreground">{t("loading")}</div>
+              ) : results.length === 0 ? (
+                <div className="p-3 text-sm text-muted-foreground">{t("noResults")}</div>
+              ) : (
+                results.map((p) => (
+                  <button
+                    key={p._id}
+                    className="w-full text-left p-3 hover:bg-accent"
+                    onClick={() => {
+                      setIsOpen(false);
+                      setSearchQuery("");
+                      router.push(`/${locale}/product/${p.slug}`);
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={(p.images && p.images[0]) || "/images/logo.png"}
+                        alt={p.title}
+                        className="w-10 h-10 rounded object-cover border"
+                      />
+                      <div className="min-w-0">
+                        <div className="text-sm font-medium line-clamp-1">{p.title}</div>
+                        <div className="text-xs text-muted-foreground line-clamp-1">/{p.slug}</div>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : null}
+        </div>
       </DialogContent>
     </Dialog>
   );
