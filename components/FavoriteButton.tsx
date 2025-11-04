@@ -24,10 +24,10 @@ export default function FavoriteButton({
   const { isFavorite, toggleFavorite } = useFavorites();
   const favorited = isFavorite(productId);
 
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    toggleFavorite(item);
+    await toggleFavorite(item);
   };
 
   if (variant === "icon") {

@@ -16,7 +16,7 @@ export default function FavoritesPage() {
   const t = useTranslations("Shop");
   const locale = useLocale();
   const { addToCart } = useCart();
-  const { favorites } = useFavorites();
+  const { favorites, loading: favoritesLoading } = useFavorites();
 
   useEffect(() => {
     const fetchFavoriteProducts = async () => {
@@ -64,7 +64,7 @@ export default function FavoritesPage() {
     });
   };
 
-  if (loading) {
+  if (loading || favoritesLoading) {
     return (
       <div className="min-h-screen py-16">
         <div className="max-w-7xl mx-auto px-6">
