@@ -10,6 +10,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
 import { CartProvider } from "@/components/CartProvider";
+import { FavoritesProvider } from "@/components/FavoritesProvider";
 import "../globals.css";
 import Navbar from "@/components/Navbar";
 import AuthSessionProvider from "@/components/SessionProvider";
@@ -89,8 +90,10 @@ export default async function LocaleLayout({
           >
             <AuthSessionProvider>
               <CartProvider>
-                <Navbar />
-                {children}
+                <FavoritesProvider>
+                  <Navbar />
+                  {children}
+                </FavoritesProvider>
               </CartProvider>
             </AuthSessionProvider>
           </ThemeProvider>

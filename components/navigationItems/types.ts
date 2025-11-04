@@ -6,5 +6,6 @@ export interface NavigationItem {
 export const navigationItems: NavigationItem[] = [
   { href: "/", labelKey: "home" },
   { href: "/shop", labelKey: "shop" },
+  { href: "/favorites", labelKey: "favorites" },
   { href: "/about", labelKey: "about" },
 ];

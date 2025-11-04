@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/components/CartProvider";
+import FavoriteButton from "@/components/FavoriteButton";
 
 interface Product {
   _id: string;
@@ -216,7 +217,7 @@ export default function ShopPage() {
                   {products.map((product) => (
                     <div
                       key={product._id}
-                      className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
+                      className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative"
                     >
                       <Link href={`/${locale}/product/${product.slug}`}>
                         <div className="relative aspect-square">
@@ -225,6 +226,16 @@ export default function ShopPage() {
                             alt={product.title}
                             fill
                             className="object-cover"
+                          />
+                          <FavoriteButton
+                            productId={product._id}
+                            item={{
+                              productId: product._id,
+                              slug: product.slug,
+                              title: product.title,
+                              price: product.price,
+                              image: product.images[0] || "/images/logo.png",
+                            }}
                           />
                         </div>
                       </Link>
