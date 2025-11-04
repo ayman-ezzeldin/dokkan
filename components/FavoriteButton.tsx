@@ -10,7 +10,7 @@ interface FavoriteButtonProps {
   productId: string;
   item: FavoriteItem;
   variant?: "default" | "icon" | "outline";
-  size?: "sm" | "md" | "lg";
+  size?: "default" | "sm" | "lg" | "icon" | "icon-sm" | "icon-lg";
   className?: string;
 }
 
