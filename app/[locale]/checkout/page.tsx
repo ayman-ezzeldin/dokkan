@@ -1,29 +1,69 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { toast } from "sonner";
+import { egyptPhoneRegex } from "@/lib/validation/shipping";
 import { useCart } from "@/components/CartProvider";
 
 export default function CheckoutPage() {
   const t = useTranslations("Checkout");
   const locale = useLocale();
-  const { cart, clearCart } = useCart();
+  const { cart, clearCart, removeFromCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
+    recipientName: "",
+    province: "",
+    cityOrDistrict: "",
+    streetInfo: "",
+    landmark: "",
     phone: "",
-    street: "",
-    city: "",
-    state: "",
-    zipCode: "",
-    country: "",
+    phoneAlternate: "",
+    notesOrBooksList: "",
   });
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/account", { cache: "no-store" });
+        if (!res.ok) return;
+        const { user } = await res.json();
+        if (ignore || !user) return;
+        const ds = user.defaultShipping || {};
+        const composedName =
+          ds.recipientName ||
+          [user.firstName, user.lastName].filter(Boolean).join(" ");
+        const primaryPhone = ds.phone || user.phoneNumber || "";
+        setFormData((prev) => ({
+          recipientName: prev.recipientName || composedName || "",
+          province: prev.province || ds.province || "",
+          cityOrDistrict: prev.cityOrDistrict || ds.cityOrDistrict || "",
+          streetInfo: prev.streetInfo || ds.streetInfo || "",
+          landmark: prev.landmark || ds.landmark || "",
+          phone: prev.phone || primaryPhone,
+          phoneAlternate: prev.phoneAlternate || ds.phoneAlternate || "",
+          notesOrBooksList: prev.notesOrBooksList || ds.notesOrBooksList || "",
+        }));
+      } catch {}
+    })();
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const subtotal = cart.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -35,10 +75,29 @@ export default function CheckoutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (cart.length === 0) return;
+    // basic client-side validation
+    if (!formData.recipientName || formData.recipientName.length < 5) {
+      return alert("من فضلك أدخل الاسم الثلاثي.");
+    }
+    if (
+      !formData.province ||
+      !formData.cityOrDistrict ||
+      !formData.streetInfo
+    ) {
+      return alert("من فضلك أكمل بيانات العنوان.");
+    }
+    if (!egyptPhoneRegex.test(formData.phone)) {
+      return alert(
+        "رقم الموبايل غير صالح. الرجاء إدخال رقم صحيح (مثال: 01012345678)."
+      );
+    }
+    setConfirmOpen(true);
+  };
 
+  const submitOrder = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -48,19 +107,10 @@ export default function CheckoutPage() {
             price: item.price,
             quantity: item.quantity,
           })),
-          customer: {
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone || undefined,
-          },
-          shippingAddress: {
-            street: formData.street,
-            city: formData.city,
-            state: formData.state || undefined,
-            zipCode: formData.zipCode,
-            country: formData.country,
-          },
+          customer: { name: formData.recipientName, phone: formData.phone },
+          shippingDetails: formData,
           shipping,
+          currency: "EGP",
         }),
       });
 
@@ -68,15 +118,31 @@ export default function CheckoutPage() {
         const data = await res.json();
         setOrderId(data.orderId);
         clearCart();
+        toast.success(
+          "تم إنشاء الطلب! سيتم فتح واتساب لتأكيد الطلب مع خدمة العملاء."
+        );
+        setTimeout(() => {
+          window.open(data.whatsappUrl, "_blank");
+        }, 300);
       } else {
         const error = await res.json();
-        alert(error.error || "Failed to place order");
+        if (error?.details && Array.isArray(error.details)) {
+          error.details.forEach((d: any) => {
+            const path = Array.isArray(d.path) ? d.path.join(".") : "";
+            toast.error(`${d.message}${path ? ` (${path})` : ""}`);
+          });
+        } else if (error?.error) {
+          toast.error(error.error);
+        } else {
+          toast.error("فشل إنشاء الطلب. حاول مرة أخرى.");
+        }
       }
     } catch (error) {
       console.error("Order error:", error);
-      alert("Failed to place order");
+      toast.error("حدث خطأ غير متوقع.");
     } finally {
       setLoading(false);
+      setConfirmOpen(false);
     }
   };
 
@@ -116,88 +182,91 @@ export default function CheckoutPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-6" dir="rtl">
               <div>
-                <h2 className="text-xl font-semibold mb-4">
-                  {t("customerInfo")}
-                </h2>
+                <h2 className="text-xl font-semibold mb-4">بيانات الشحن</h2>
                 <div className="space-y-4">
                   <Input
                     required
-                    placeholder={t("name")}
-                    value={formData.name}
+                    placeholder="أدخل الاسم الثلاثي (مثال: محمد أحمد علي)"
+                    value={formData.recipientName}
                     onChange={(e) =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                  />
-                  <Input
-                    required
-                    type="email"
-                    placeholder={t("email")}
-                    value={formData.email}
-                    onChange={(e) =>
-                      setFormData({ ...formData, email: e.target.value })
+                      setFormData({
+                        ...formData,
+                        recipientName: e.target.value,
+                      })
                     }
                   />
                   <Input
                     type="tel"
-                    placeholder={t("phone")}
+                    placeholder="مثال: 01012345678"
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
                   />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <Input
+                      placeholder="مثال: 01087654321"
+                      value={formData.phoneAlternate}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          phoneAlternate: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
                 </div>
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">
-                  {t("shippingAddress")}
-                </h2>
+                <h2 className="text-xl font-semibold mb-4">العنوان</h2>
                 <div className="space-y-4">
                   <Input
                     required
-                    placeholder={t("street")}
-                    value={formData.street}
+                    placeholder="مثال: القاهرة"
+                    value={formData.province}
                     onChange={(e) =>
-                      setFormData({ ...formData, street: e.target.value })
+                      setFormData({ ...formData, province: e.target.value })
                     }
                   />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      required
-                      placeholder={t("city")}
-                      value={formData.city}
-                      onChange={(e) =>
-                        setFormData({ ...formData, city: e.target.value })
-                      }
-                    />
-                    <Input
-                      placeholder={t("state")}
-                      value={formData.state}
-                      onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      required
-                      placeholder={t("zipCode")}
-                      value={formData.zipCode}
-                      onChange={(e) =>
-                        setFormData({ ...formData, zipCode: e.target.value })
-                      }
-                    />
-                    <Input
-                      required
-                      placeholder={t("country")}
-                      value={formData.country}
-                      onChange={(e) =>
-                        setFormData({ ...formData, country: e.target.value })
-                      }
-                    />
-                  </div>
+                  <Input
+                    required
+                    placeholder="مثال: مدينة نصر / الحي العاشر"
+                    value={formData.cityOrDistrict}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        cityOrDistrict: e.target.value,
+                      })
+                    }
+                  />
+                  <Input
+                    required
+                    placeholder="مثال: شارع 9 - عقار 12 - الدور 3 - شقة 301"
+                    value={formData.streetInfo}
+                    onChange={(e) =>
+                      setFormData({ ...formData, streetInfo: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="مثال: قرب مسجد الرحمة أو بجوار صيدلية النصر"
+                    value={formData.landmark}
+                    onChange={(e) =>
+                      setFormData({ ...formData, landmark: e.target.value })
+                    }
+                  />
+                  <Input
+                    placeholder="اكتب أسماء الكتب المطلوبة أو ملاحظات للحجز"
+                    value={formData.notesOrBooksList}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        notesOrBooksList: e.target.value,
+                      })
+                    }
+                  />
                 </div>
               </div>
 
@@ -210,6 +279,27 @@ export default function CheckoutPage() {
                 {loading ? "Processing..." : t("placeOrder")}
               </Button>
             </form>
+            <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>
+                    سيتم الآن إرسال تفاصيل طلبك إلى خدمة العملاء على واتساب. هل
+                    تريد المتابعة؟
+                  </DialogTitle>
+                </DialogHeader>
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={() => setConfirmOpen(false)}
+                  >
+                    إلغاء
+                  </Button>
+                  <Button onClick={submitOrder} disabled={loading}>
+                    متابعة
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
           </div>
 
           <div className="lg:col-span-1">
@@ -217,7 +307,7 @@ export default function CheckoutPage() {
               <h2 className="text-xl font-semibold mb-4">{t("cartReview")}</h2>
               <div className="space-y-4 mb-4">
                 {cart.map((item) => (
-                  <div key={item.productId} className="flex gap-4">
+                  <div key={item.productId} className="flex gap-4 items-center">
                     <div className="relative w-16 h-16 rounded-md overflow-hidden">
                       <Image
                         src={item.image}
@@ -234,6 +324,14 @@ export default function CheckoutPage() {
                         {item.quantity} × {item.price}
                       </p>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => removeFromCart(item.productId)}
+                      className="text-md text-gray-300 hover:underline cursor-pointer"
+                      aria-label="Remove"
+                    >
+                      x
+                    </button>
                   </div>
                 ))}
               </div>

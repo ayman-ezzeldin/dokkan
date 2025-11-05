@@ -31,6 +31,14 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## WhatsApp Checkout (Manual Test Steps)
+
+1. Go to the checkout page and fill all shipping fields (Arabic placeholders provided), then click "Checkout".
+2. Ensure the server logs show the order saved successfully.
+3. A new tab should open to WhatsApp with a pre-filled Arabic order summary.
+4. Verify line breaks, emojis, and numbers render correctly.
+5. Try an invalid phone (e.g. wrong format) — form should block and show an Arabic error.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

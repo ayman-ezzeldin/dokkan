@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
+import { Search, ShoppingCart } from "lucide-react";
 import { useTranslations, useLocale } from "next-intl";
 
 import { Button } from "@/components/ui/button";
@@ -12,11 +12,13 @@ import SearchModal from "./SearchModal";
 import { navigationItems } from "./types";
 import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { useCart } from "@/components/CartProvider";
 
 const DesktopNavbar = () => {
   const t = useTranslations("Navbar");
   const locale = useLocale();
   const { data: session } = useSession();
+  const { cart } = useCart();
   return (
     <div className="hidden md:flex md:items-center md:justify-between md:w-full md:ml-8 md:gap-3">
       {/* Search Bar - Left */}
@@ -49,6 +51,14 @@ const DesktopNavbar = () => {
 
       {/* Theme Toggle, Language Switcher & Avatar - Right */}
       <div className="flex items-center space-x-4">
+        <Link href={`/${locale}/checkout`} className="relative">
+          <ShoppingCart className="w-5 h-5" />
+          {cart.length > 0 && (
+            <span className="absolute -top-2 -right-2 text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-white">
+              {cart.length}
+            </span>
+          )}
+        </Link>
         <ModeToggle />
         <LanguageSwitcher />
         {session?.user ? (

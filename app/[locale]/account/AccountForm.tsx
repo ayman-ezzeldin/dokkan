@@ -9,6 +9,17 @@ type UserLite = {
   lastName: string;
   email: string;
   phoneNumber?: string;
+  defaultShipping?: {
+    recipientName?: string;
+    province?: string;
+    cityOrDistrict?: string;
+    streetInfo?: string;
+    landmark?: string;
+    phone?: string;
+    phoneAlternate?: string;
+    whatsapp?: string;
+    notesOrBooksList?: string;
+  };
 };
 
 export default function AccountForm({
@@ -16,12 +27,14 @@ export default function AccountForm({
 }: {
   initialUser: UserLite;
 }) {
+  type EditableField = "firstName" | "lastName" | "email" | "phoneNumber";
   const [user, setUser] = useState(initialUser);
-  const [editField, setEditField] = useState<null | keyof UserLite>(null);
+  const [shipping, setShipping] = useState<UserLite["defaultShipping"]>(initialUser.defaultShipping || {});
+  const [editField, setEditField] = useState<null | EditableField>(null);
   const [pendingValue, setPendingValue] = useState("");
   const [loading, setLoading] = useState(false);
 
-  function startEdit(field: keyof UserLite) {
+  function startEdit(field: EditableField) {
     setEditField(field);
     setPendingValue(user[field] || "");
   }
@@ -33,8 +46,10 @@ export default function AccountForm({
   async function save() {
     setLoading(true);
     try {
-      const updates: Partial<UserLite> = {};
-      updates[editField as keyof UserLite] = pendingValue;
+      const updates: Partial<Record<EditableField, string>> = {};
+      if (editField) {
+        updates[editField] = pendingValue;
+      }
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -53,7 +68,27 @@ export default function AccountForm({
     }
   }
 
-  const fields: { field: keyof UserLite; label: string; type?: string }[] = [
+  async function saveShipping() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/account", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ defaultShipping: shipping }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error || "Update failed");
+      setUser((u) => ({ ...u, defaultShipping: shipping }));
+      toast.success("تم حفظ عنوان الشحن");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to update";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const fields: { field: EditableField; label: string; type?: string }[] = [
     { field: "firstName", label: "First name" },
     { field: "lastName", label: "Last name" },
     { field: "email", label: "Email", type: "email" },
@@ -117,9 +152,9 @@ export default function AccountForm({
               <>
                 <span
                   className="w-52 truncate text-foreground"
-                  title={user[field] || "-"}
+                  title={(user[field] as string | undefined) || "-"}
                 >
-                  {user[field] || "-"}
+                  {(user[field] as string | undefined) || "-"}
                 </span>
                 <button
                   type="button"
@@ -138,6 +173,26 @@ export default function AccountForm({
             )}
           </div>
         ))}
+      </div>
+
+      <div className="mt-6 border-t pt-6">
+        <h3 className="text-lg font-semibold mb-3">العنوان وأرقام التواصل الافتراضية</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" dir="rtl">
+          <Input placeholder="أدخل الاسم الثلاثي" value={shipping?.recipientName || ""} onChange={(e) => setShipping({ ...shipping, recipientName: e.target.value })} />
+          <Input placeholder="مثال: 01012345678" value={shipping?.phone || ""} onChange={(e) => setShipping({ ...shipping, phone: e.target.value })} />
+          <Input placeholder="مثال: 01087654321" value={shipping?.phoneAlternate || ""} onChange={(e) => setShipping({ ...shipping, phoneAlternate: e.target.value })} />
+          <Input placeholder="رقم واتساب" value={shipping?.whatsapp || ""} onChange={(e) => setShipping({ ...shipping, whatsapp: e.target.value })} />
+          <Input placeholder="المحافظة" value={shipping?.province || ""} onChange={(e) => setShipping({ ...shipping, province: e.target.value })} />
+          <Input placeholder="المدينة/الحي" value={shipping?.cityOrDistrict || ""} onChange={(e) => setShipping({ ...shipping, cityOrDistrict: e.target.value })} />
+          <Input placeholder="تفاصيل الشارع" value={shipping?.streetInfo || ""} onChange={(e) => setShipping({ ...shipping, streetInfo: e.target.value })} />
+          <Input placeholder="علامة مميزة (اختياري)" value={shipping?.landmark || ""} onChange={(e) => setShipping({ ...shipping, landmark: e.target.value })} />
+          <Input placeholder="ملاحظات (اختياري)" value={shipping?.notesOrBooksList || ""} onChange={(e) => setShipping({ ...shipping, notesOrBooksList: e.target.value })} />
+        </div>
+        <div className="mt-3">
+          <button onClick={saveShipping} className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60" disabled={loading}>
+            حفظ عنوان الشحن
+          </button>
+        </div>
       </div>
     </div>
   );

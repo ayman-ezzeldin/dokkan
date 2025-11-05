@@ -1,18 +1,11 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import {
-  CartItem,
-  getCart,
-  addToCart as add,
-  removeFromCart as remove,
-  updateCartItem as update,
-  clearCart as clear,
-} from "@/lib/cart";
+import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { CartItem } from "@/lib/cart";
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (item: Omit<CartItem, "quantity">) => void;
+  addToCart: (item: Omit<CartItem, "quantity">, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartItem: (productId: string, quantity: number) => void;
   clearCart: () => void;
@@ -23,30 +16,38 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    if (typeof window !== "undefined") {
-      return getCart();
-    }
-    return [];
-  });
+  const [cart, setCart] = useState<CartItem[]>([]);
 
-  const handleAddToCart = (item: Omit<CartItem, "quantity">) => {
-    const newCart = add(item);
-    setCart(newCart);
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await fetch("/api/cart", { cache: "no-store" });
+        const data = await res.json();
+        setCart(data.items || []);
+      } catch {}
+    })();
+  }, []);
+
+  const handleAddToCart = async (item: Omit<CartItem, "quantity">, quantity: number = 1) => {
+    const res = await fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "add", item, quantity }) });
+    const data = await res.json();
+    setCart(data.items || []);
   };
 
-  const handleRemoveFromCart = (productId: string) => {
-    const newCart = remove(productId);
-    setCart(newCart);
+  const handleRemoveFromCart = async (productId: string) => {
+    const res = await fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "remove", productId }) });
+    const data = await res.json();
+    setCart(data.items || []);
   };
 
-  const handleUpdateCartItem = (productId: string, quantity: number) => {
-    const newCart = update(productId, quantity);
-    setCart(newCart);
+  const handleUpdateCartItem = async (productId: string, quantity: number) => {
+    const res = await fetch("/api/cart", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ action: "update", productId, quantity }) });
+    const data = await res.json();
+    setCart(data.items || []);
   };
 
-  const handleClearCart = () => {
-    clear();
+  const handleClearCart = async () => {
+    await fetch("/api/cart", { method: "DELETE" });
     setCart([]);
   };
 

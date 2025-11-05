@@ -38,7 +38,12 @@ export async function PATCH(request: Request) {
 
     const user = await User.findOneAndUpdate(
       { email: session.user.email },
-      { $set: updates },
+      { 
+        $set: {
+          ...updates,
+          ...(data.defaultShipping ? { defaultShipping: data.defaultShipping } : {}),
+        }
+      },
       { new: true, runValidators: true }
     ).lean()
 

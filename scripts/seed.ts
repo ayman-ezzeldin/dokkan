@@ -1,6 +1,7 @@
 import connectDB from '../lib/db';
 import Category from '../models/Category';
 import Product from '../models/Product';
+import Order from '../models/Order';
 
 async function seed() {
   try {
@@ -108,7 +109,27 @@ async function seed() {
       },
     ]);
 
-    console.log(`Seeded ${categories.length} categories and ${products.length} products`);
+    await Order.deleteMany({});
+    await Order.create({
+      items: [
+        { productId: products[0]._id, title: products[0].title, price: products[0].price, quantity: 2 },
+      ],
+      subtotal: products[0].price * 2,
+      shipping: 10,
+      total: products[0].price * 2 + 10,
+      customer: { name: 'Test User', phone: '01012345678' },
+      shippingDetails: {
+        recipientName: 'محمد أحمد علي',
+        province: 'القاهرة',
+        cityOrDistrict: 'مدينة نصر - الحي العاشر',
+        streetInfo: 'شارع 9 - عقار 12 - الدور 3 - شقة 301',
+        landmark: 'قرب مسجد الرحمة',
+        phone: '01012345678',
+      },
+      status: 'pending',
+    });
+
+    console.log(`Seeded ${categories.length} categories, ${products.length} products and 1 example order`);
     process.exit(0);
   } catch (error) {
     console.error('Seed error:', error);

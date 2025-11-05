@@ -1,4 +1,4 @@
-import mongoose, { Schema, Model } from 'mongoose';
+import mongoose, { Schema, Model, Types } from 'mongoose';
 
 export interface IOrderItem {
   productId: mongoose.Types.ObjectId;
@@ -12,17 +12,22 @@ export interface IOrder {
   subtotal: number;
   shipping: number;
   total: number;
+  userId?: Types.ObjectId;
   customer: {
     name: string;
-    email: string;
+    email?: string;
     phone?: string;
   };
-  shippingAddress: {
-    street: string;
-    city: string;
-    state?: string;
-    zipCode: string;
-    country: string;
+  shippingDetails: {
+    recipientName: string;
+    province: string;
+    cityOrDistrict: string;
+    streetInfo: string;
+    landmark?: string;
+    phone: string;
+    phoneAlternate?: string;
+    whatsapp?: string;
+    notesOrBooksList?: string;
   };
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   createdAt: Date;
@@ -38,17 +43,22 @@ const OrderSchema = new Schema<IOrder>({
   subtotal: { type: Number, required: true },
   shipping: { type: Number, default: 0 },
   total: { type: Number, required: true },
+  userId: { type: Schema.Types.ObjectId, ref: 'User' },
   customer: {
     name: { type: String, required: true },
-    email: { type: String, required: true },
+    email: { type: String },
     phone: { type: String },
   },
-  shippingAddress: {
-    street: { type: String, required: true },
-    city: { type: String, required: true },
-    state: { type: String },
-    zipCode: { type: String, required: true },
-    country: { type: String, required: true },
+  shippingDetails: {
+    recipientName: { type: String, required: true },
+    province: { type: String, required: true },
+    cityOrDistrict: { type: String, required: true },
+    streetInfo: { type: String, required: true },
+    landmark: { type: String },
+    phone: { type: String, required: true },
+    phoneAlternate: { type: String },
+    whatsapp: { type: String },
+    notesOrBooksList: { type: String },
   },
   status: { type: String, enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'], default: 'pending' },
   createdAt: { type: Date, default: Date.now },

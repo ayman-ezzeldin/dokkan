@@ -8,6 +8,17 @@ export interface IUser {
   passwordHash?: string;
   passwordSalt?: string;
   role: 'user' | 'admin';
+  defaultShipping?: {
+    recipientName?: string;
+    province?: string;
+    cityOrDistrict?: string;
+    streetInfo?: string;
+    landmark?: string;
+    phone?: string;
+    phoneAlternate?: string;
+    whatsapp?: string;
+    notesOrBooksList?: string;
+  };
   createdAt: Date;
 }
 
@@ -19,6 +30,17 @@ const UserSchema = new Schema<IUser>({
   passwordHash: { type: String },
   passwordSalt: { type: String },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  defaultShipping: {
+    recipientName: { type: String },
+    province: { type: String },
+    cityOrDistrict: { type: String },
+    streetInfo: { type: String },
+    landmark: { type: String },
+    phone: { type: String },
+    phoneAlternate: { type: String },
+    whatsapp: { type: String },
+    notesOrBooksList: { type: String },
+  },
   createdAt: { type: Date, default: Date.now },
 });
 

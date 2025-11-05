@@ -31,6 +31,7 @@ export default function ProductPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [qty, setQty] = useState(1);
 
   useEffect(() => {
     if (params.slug) {
@@ -57,7 +58,7 @@ export default function ProductPage() {
         title: product.title,
         price: product.price,
         image: product.images[0] || "/images/logo.png",
-      });
+      }, qty);
     }
   };
 
@@ -167,6 +168,21 @@ export default function ProductPage() {
                   <span className="text-red-500">{t("outOfStock")}</span>
                 )}
               </p>
+            </div>
+
+            <div className="mb-4 flex items-center gap-3">
+              <div className="inline-flex items-center border rounded-md">
+                <button type="button" className="px-3 py-2 disabled:opacity-50" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1}>-</button>
+                <input
+                  type="number"
+                  min={1}
+                  max={product.stock || undefined}
+                  value={qty}
+                  onChange={(e) => setQty(Math.max(1, Math.min(Number(e.target.value) || 1, product.stock || 9999)))}
+                  className="w-16 text-center bg-transparent py-2"
+                />
+                <button type="button" className="px-3 py-2 disabled:opacity-50" onClick={() => setQty((q) => Math.min((product.stock || q + 1), q + 1))} disabled={product.stock > 0 ? qty >= product.stock : false}>+</button>
+              </div>
             </div>
 
             <Button

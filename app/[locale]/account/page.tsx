@@ -36,6 +36,7 @@ export default async function AccountPage({
             lastName: user.lastName,
             email: user.email,
             phoneNumber: user.phoneNumber,
+            defaultShipping: (user as any).defaultShipping,
           }}
         />
       </div>

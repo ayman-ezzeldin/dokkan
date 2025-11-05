@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { shippingSchema } from './validation/shipping';
 
 export const orderSchema = z.object({
   items: z.array(z.object({
@@ -46,6 +47,7 @@ export const userUpdateSchema = z.object({
   lastName: z.string().min(1).optional(),
   phoneNumber: z.string().min(5).max(20).optional().or(z.literal('').transform(() => undefined)),
   email: z.string().email().optional(),
+  defaultShipping: shippingSchema.partial().optional(),
 });
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;
