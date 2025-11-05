@@ -81,6 +81,10 @@
   --sidebar-ring: #C61F5B;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 .dark {
   --background: #1D232F;
   --foreground: #FBFCFD;

@@ -15,6 +15,7 @@ import "../globals.css";
 import Navbar from "@/components/Navbar";
 import AuthSessionProvider from "@/components/SessionProvider";
 import { Toaster } from "@/components/ui/sonner";
+import Footer from "@/components/Footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -93,6 +94,7 @@ export default async function LocaleLayout({
                 <FavoritesProvider>
                   <Navbar />
                   {children}
+                  <Footer />
                 </FavoritesProvider>
               </CartProvider>
             </AuthSessionProvider>

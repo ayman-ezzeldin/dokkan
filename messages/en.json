@@ -78,5 +78,101 @@
     "orderPlaced": "Order Placed Successfully!",
     "orderNumber": "Order Number",
     "continueShopping": "Continue Shopping"
+  },
+  "Testimonials": {
+    "title": "What customers say",
+    "roles": {
+      "designer": "Designer",
+      "marketer": "Marketer",
+      "engineer": "Engineer"
+    },
+    "q1": "Amazing selection and speed.",
+    "q2": "Boosted our sales.",
+    "q3": "Smooth experience."
+  },
+  "FAQ": {
+    "title": "FAQ",
+    "q1": {
+      "q": "How fast is shipping?",
+      "a": "Orders ship within 24–48 hours."
+    },
+    "q2": { "q": "Do you support returns?", "a": "Yes, within 30 days." },
+    "q3": {
+      "q": "Do you ship internationally?",
+      "a": "Selected regions supported."
+    }
+  },
+  "Footer": {
+    "brand": "Dokkan",
+    "tagline": "Your favorite online bookstore.",
+    "links": "Links",
+    "shop": "Shop",
+    "about": "About",
+    "favorites": "Favorites",
+    "legal": "Legal",
+    "privacy": "Privacy",
+    "terms": "Terms"
+  },
+  "About": {
+    "hero": {
+      "title": "Where Stories Come to Life",
+      "subtitle": "Connecting readers with books that inspire, educate, and entertain since 2019"
+    },
+    "mission": {
+      "title": "Our Mission",
+      "body": "We believe that every book has the power to open new worlds, spark imagination, and transform lives. Our mission is to make quality literature accessible to everyone, fostering a community of passionate readers."
+    },
+    "story": {
+      "title": "Our Story",
+      "p1": "What started as a small Facebook page sharing book recommendations has grown into a thriving online bookstore serving thousands of book lovers. We carefully curate every title in our collection, ensuring that each book meets our standards of quality and value.",
+      "p2": "From bestsellers to hidden gems, from classic literature to contemporary fiction, we've built a collection that caters to every reader's taste. Our journey has been driven by one simple belief: the right book at the right time can change everything.",
+      "founded": "Founded",
+      "booksSold": "Books sold",
+      "happyCustomers": "Happy customers",
+      "years": "Years in business",
+      "alt": "Our bookstore journey"
+    },
+    "values": {
+      "title": "Our Values",
+      "v1": {
+        "title": "Quality First",
+        "desc": "Every book in our collection is carefully selected and verified for authenticity."
+      },
+      "v2": {
+        "title": "Customer Happiness",
+        "desc": "Your satisfaction is our top priority. We're here to help you find your next favorite book."
+      },
+      "v3": {
+        "title": "Community",
+        "desc": "We're more than a bookstore – we're a community of readers who love to share and discover."
+      },
+      "v4": {
+        "title": "Accessibility",
+        "desc": "Great books should be available to everyone. We work hard to keep our prices fair."
+      }
+    },
+    "stats": {
+      "books": "Books Available",
+      "customers": "Happy Customers",
+      "years": "Years of Service",
+      "daily": "Daily Orders"
+    },
+    "why": {
+      "title": "Why Choose Us",
+      "i1": "Carefully curated selection of quality books",
+      "i2": "Fast and reliable delivery across the country",
+      "i3": "100% authentic books guaranteed",
+      "i4": "Responsive customer support",
+      "i5": "Competitive prices and special offers",
+      "i6": "Easy returns and exchanges",
+      "i7": "Secure payment options",
+      "i8": "Regular new arrivals and bestsellers"
+    },
+    "cta": {
+      "title": "Ready to Start Your Reading Journey?",
+      "subtitle": "Find your next favorite book today.",
+      "browse": "Browse Books",
+      "contact": "Contact Us"
+    }
   }
 }
