@@ -85,6 +85,22 @@ html {
   scroll-behavior: smooth;
 }
 
+/* Global Arabic font for Arabic locale pages */
+[lang="ar"] body {
+  font-family: var(--font-amiri), var(--font-geist-sans), system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+}
+
+/* Text selection styling for all text */
+::selection {
+  color: #C61F5B;
+  background-color: transparent;
+}
+
+::-moz-selection {
+  color: #C61F5B;
+  background-color: transparent;
+}
+
 .dark {
   --background: #1D232F;
   --foreground: #FBFCFD;

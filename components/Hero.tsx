@@ -3,11 +3,12 @@
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 
 const Hero = () => {
   const [isVisible, setIsVisible] = useState(false);
   const t = useTranslations("Hero");
+  const locale = useLocale();
 
   useEffect(() => {
     setIsVisible(true);
@@ -29,12 +30,23 @@ const Hero = () => {
               {/* Main Title */}
               <h1
                 className="text-6xl md:text-7xl lg:text-8xl font-black mb-6 leading-none"
-                style={{ fontFamily: "var(--font-dancing)" }}
+                style={{
+                  fontFamily:
+                    locale === "ar"
+                      ? "var(--font-reem-ar)"
+                      : "var(--font-dancing)",
+                }}
               >
-                <span className="block bg-linear-to-r from-primary via-pink-500 to-purple-600 bg-clip-text text-transparent animate-gradient-x font-extrabold tracking-tight">
+                <span className="block bg-linear-to-r from-primary via-pink-500 to-purple-600 bg-clip-text text-transparent animate-gradient-x font-extrabold tracking-tight pb-2">
                   {t("title")}
                 </span>
-                <span className="block text-4xl md:text-5xl lg:text-6xl font-light bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mt-2 tracking-wide">
+                <span
+                  className="block text-4xl md:text-5xl lg:text-6xl font-light bg-linear-to-r from-foreground to-muted-foreground bg-clip-text text-transparent mt-2 tracking-wide"
+                  style={{
+                    fontFamily:
+                      locale === "ar" ? "var(--font-reem-ar)" : undefined,
+                  }}
+                >
                   {t("subtitle")}
                 </span>
               </h1>

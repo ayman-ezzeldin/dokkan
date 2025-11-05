@@ -6,6 +6,7 @@ import {
   Inter,
   Dancing_Script,
 } from "next/font/google";
+import { Reem_Kufi_Ink, Amiri } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { notFound } from "next/navigation";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -45,6 +46,18 @@ const dancingScript = Dancing_Script({
   weight: ["400", "500", "600", "700"],
 });
 
+const reemKufiInk = Reem_Kufi_Ink({
+  variable: "--font-reem-ar",
+  subsets: ["arabic"],
+  weight: ["400"],
+});
+
+const amiri = Amiri({
+  variable: "--font-amiri",
+  subsets: ["arabic", "latin"],
+  weight: ["400", "700"],
+});
+
 export const metadata: Metadata = {
   title: "Dokkan",
   description: "Your favorite online bookstore",
@@ -80,7 +93,7 @@ export default async function LocaleLayout({
       suppressHydrationWarning
     >
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${inter.variable} ${dancingScript.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${playfairDisplay.variable} ${inter.variable} ${dancingScript.variable} ${reemKufiInk.variable} ${amiri.variable} antialiased`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
           <ThemeProvider
