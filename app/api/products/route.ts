@@ -3,6 +3,7 @@ import { NextRequest } from 'next/server';
 import connectDB from '@/lib/db';
 import Product from '@/models/Product';
 import mongoose from 'mongoose';
+import Author from '@/models/Author';
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,9 +11,9 @@ export async function GET(request: NextRequest) {
 
     const searchParams = request.nextUrl.searchParams;
     const q = searchParams.get('q') || '';
-    const category = searchParams.get('category') || '';
-    const minPrice = searchParams.get('minPrice');
-    const maxPrice = searchParams.get('maxPrice');
+    const categorySingle = searchParams.get('category') || '';
+    const categoryMulti = searchParams.getAll('category');
+    const authorMulti = searchParams.getAll('author');
     const sort = searchParams.get('sort') || 'createdAt';
     const page = parseInt(searchParams.get('page') || '1');
     const perPage = parseInt(searchParams.get('perPage') || '12');
@@ -21,22 +22,23 @@ export async function GET(request: NextRequest) {
 
     if (q) {
       const regex = { $regex: q, $options: 'i' } as any;
+      const authorIds = await Author.find({ name: regex }).select('_id').lean();
+      const authorIdList = authorIds.map((a: any) => a._id);
       (query as any).$or = [
         { title: regex },
         { slug: regex },
         { description: regex },
+        ...(authorIdList.length > 0 ? [{ author: { $in: authorIdList } }] : []),
       ];
     }
 
-    if (category) {
-      query.categoryId = category;
+    const categoryIds = categoryMulti.length > 0 ? categoryMulti : (categorySingle ? [categorySingle] : []);
+    if (categoryIds.length > 0) {
+      query.categoryId = { $in: categoryIds };
     }
 
-    if (minPrice || maxPrice) {
-      (query as Record<string, { $gte?: number; $lte?: number }>).price = {};
-      const priceQuery = (query as Record<string, { $gte?: number; $lte?: number }>).price;
-      if (minPrice && priceQuery) priceQuery.$gte = parseFloat(minPrice);
-      if (maxPrice && priceQuery) priceQuery.$lte = parseFloat(maxPrice);
+    if (authorMulti.length > 0) {
+      (query as any).author = { $in: authorMulti };
     }
 
     const sortObj: Record<string, mongoose.SortOrder> = {};
@@ -50,10 +52,11 @@ export async function GET(request: NextRequest) {
 
     const [products, total] = await Promise.all([
       Product.find(query)
-        .select('title slug description image images price currency categoryId tags stock amount')
+        .select('title slug description author image images price currency categoryId tags stock amount')
         .sort(sortObj)
         .skip(skip)
         .limit(perPage)
+        .populate('author', 'name image')
         .lean(),
       Product.countDocuments(query),
     ]);

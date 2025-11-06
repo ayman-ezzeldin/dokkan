@@ -11,6 +11,8 @@ interface Product {
   title: string;
   slug: string;
   description: string;
+  author?: any;
+  image?: string;
   images: string[];
   price: number;
   currency: string;
@@ -70,14 +72,21 @@ export default function SuggestedProducts() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {products.map((product) => (
             <ProductCard
               key={product._id}
               id={product._id}
               slug={product.slug}
               title={product.title}
-              images={product.images}
+              author={(product as any).author}
+              images={
+                product.images && product.images.length > 0
+                  ? product.images
+                  : product.image
+                  ? [product.image]
+                  : []
+              }
               price={product.price}
             />
           ))}

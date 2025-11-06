@@ -14,7 +14,9 @@
     "welcome": "Welcome!",
     "exploreBooks": "Explore our books",
     "navigation": "Navigation",
-    "bookstoreName": "Dokkan Bookstore"
+    "bookstoreName": "Dokkan Bookstore",
+    "loading": "Loading...",
+    "noResults": "No results found"
   },
   "Hero": {
     "title": "AL Dokkan ",
@@ -50,7 +52,9 @@
     "shipping": "Shipping",
     "total": "Total",
     "quantity": "Quantity",
-    "remove": "Remove"
+    "remove": "Remove",
+    "categories": "Categories",
+    "authors": "Authors"
   },
   "Product": {
     "title": "Product Details",

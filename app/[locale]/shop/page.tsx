@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import ProductCard from "@/components/shop/ProductCard";
-import FilterSidebar from "@/components/shop/FilterSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/components/CartProvider";
@@ -14,6 +13,8 @@ interface Product {
   title: string;
   slug: string;
   description: string;
+  author?: { _id?: string; name?: string } | string | null;
+  image?: string;
   images: string[];
   price: number;
   currency: string;
@@ -27,6 +28,11 @@ interface Category {
   parentId?: string | null;
 }
 
+interface Author {
+  _id: string;
+  name: string;
+}
+
 export default function ShopPage() {
   const t = useTranslations("Shop");
   const locale = useLocale();
@@ -36,6 +42,7 @@ export default function ShopPage() {
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [authors, setAuthors] = useState<Author[]>([]);
   const [loading, setLoading] = useState(true);
   const [pagination, setPagination] = useState({
     page: 1,
@@ -44,24 +51,30 @@ export default function ShopPage() {
   });
 
   const [search, setSearch] = useState(searchParams.get("q") || "");
-  const [selectedCategory, setSelectedCategory] = useState(
-    searchParams.get("category") || ""
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    searchParams.getAll("category")
   );
-  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") || "");
-  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") || "");
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(
+    searchParams.getAll("author")
+  );
   const [sort, setSort] = useState(searchParams.get("sort") || "createdAt");
   const [page, setPage] = useState(parseInt(searchParams.get("page") || "1"));
+  const isUpdatingFromUrl = useRef(false);
+  const prevSearchParams = useRef<string>(searchParams.toString());
+
+  const buildQueryString = useCallback(() => {
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    selectedCategories.forEach((c) => params.append("category", c));
+    selectedAuthors.forEach((a) => params.append("author", a));
+    if (sort) params.set("sort", sort);
+    if (page > 1) params.set("page", page.toString());
+    return params;
+  }, [search, selectedCategories, selectedAuthors, sort, page]);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
-    const params = new URLSearchParams();
-    if (search) params.set("q", search);
-    if (selectedCategory) params.set("category", selectedCategory);
-    if (minPrice) params.set("minPrice", minPrice);
-    if (maxPrice) params.set("maxPrice", maxPrice);
-    if (sort) params.set("sort", sort);
-    if (page > 1) params.set("page", page.toString());
-
+    const params = buildQueryString();
     try {
       const res = await fetch(`/api/products?${params}`);
       const data = await res.json();
@@ -72,25 +85,66 @@ export default function ShopPage() {
     } finally {
       setLoading(false);
     }
-  }, [search, selectedCategory, minPrice, maxPrice, sort, page]);
+  }, [buildQueryString]);
 
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
+  // Debounce fetch when local filters/search/sort/page change
+  const debounceId = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
+    if (isUpdatingFromUrl.current) return;
+    if (debounceId.current) clearTimeout(debounceId.current);
+    debounceId.current = setTimeout(() => {
+      fetchProducts();
+    }, 200);
+    return () => {
+      if (debounceId.current) clearTimeout(debounceId.current);
+    };
+  }, [search, selectedCategories, selectedAuthors, sort, page, fetchProducts]);
+
+  useEffect(() => {
+    if (isUpdatingFromUrl.current) {
+      isUpdatingFromUrl.current = false;
+      return;
+    }
+
+    const params = new URLSearchParams();
+    if (search) params.set("q", search);
+    selectedCategories.forEach((c) => params.append("category", c));
+    selectedAuthors.forEach((a) => params.append("author", a));
+    if (sort) params.set("sort", sort);
+    if (page > 1) params.set("page", page.toString());
+
+    const currentParams = new URLSearchParams(window.location.search);
+    const paramsString = params.toString();
+    const currentString = currentParams.toString();
+
+    if (paramsString !== currentString) {
+      router.replace(`/${locale}/shop?${params}`, { scroll: false });
+    }
+  }, [selectedCategories, selectedAuthors, search, sort, page, locale, router]);
+
+  useEffect(() => {
+    const currentParams = searchParams.toString();
+    if (prevSearchParams.current === currentParams) {
+      return;
+    }
+    prevSearchParams.current = currentParams;
+
     const qParam = searchParams.get("q") || "";
-    const catParam = searchParams.get("category") || "";
-    const minParam = searchParams.get("minPrice") || "";
-    const maxParam = searchParams.get("maxPrice") || "";
     const sortParam = searchParams.get("sort") || "createdAt";
     const pageParam = parseInt(searchParams.get("page") || "1");
+    const cats = searchParams.getAll("category");
+    const auths = searchParams.getAll("author");
+
+    isUpdatingFromUrl.current = true;
     setSearch(qParam);
-    setSelectedCategory(catParam);
-    setMinPrice(minParam);
-    setMaxPrice(maxParam);
     setSort(sortParam);
     setPage(pageParam);
+    setSelectedCategories(cats);
+    setSelectedAuthors(auths);
   }, [searchParams]);
 
   useEffect(() => {
@@ -98,18 +152,30 @@ export default function ShopPage() {
       .then((res) => res.json())
       .then((data) => setCategories(data))
       .catch(console.error);
+    fetch("/api/authors")
+      .then((res) => res.json())
+      .then((data) => setAuthors(data.authors || []))
+      .catch(console.error);
   }, []);
 
-  const handleSearch = () => {
-    setPage(1);
-    const params = new URLSearchParams();
-    if (search) params.set("q", search);
-    if (selectedCategory) params.set("category", selectedCategory);
-    if (minPrice) params.set("minPrice", minPrice);
-    if (maxPrice) params.set("maxPrice", maxPrice);
-    if (sort !== "createdAt") params.set("sort", sort);
-    router.push(`/${locale}/shop?${params}`);
-    fetchProducts();
+  const toggleCategory = (id: string) => {
+    setSelectedCategories((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      setPage(1);
+      return next;
+    });
+  };
+
+  const toggleAuthor = (id: string) => {
+    setSelectedAuthors((prev) => {
+      const next = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      setPage(1);
+      return next;
+    });
   };
 
   // Using ProductCard handles add-to-cart internally
@@ -120,22 +186,64 @@ export default function ShopPage() {
         <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <aside className="lg:w-64">
-            <FilterSidebar categories={categories} />
-          </aside>
-
-          <main className="flex-1">
-            <div className="mb-4">
+          <aside className="lg:w-64 space-y-6">
+            <div>
               <Input
                 type="text"
                 placeholder={t("searchPlaceholder")}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-                className="max-w-md"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    setPage(1);
+                    const params = buildQueryString();
+                    router.push(`/${locale}/shop?${params}`);
+                  }
+                }}
+                className="w-full"
               />
             </div>
 
+            <div>
+              <h3 className="text-sm font-semibold mb-2">{t("categories")}</h3>
+              <div className="space-y-1 max-h-64 overflow-auto pr-2">
+                {categories.map((c) => (
+                  <label
+                    key={c._id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(c._id)}
+                      onChange={() => toggleCategory(c._id)}
+                    />
+                    <span>{c.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h3 className="text-sm font-semibold mb-2">{t("authors")}</h3>
+              <div className="space-y-1 max-h-64 overflow-auto pr-2">
+                {authors.map((a) => (
+                  <label
+                    key={a._id}
+                    className="flex items-center gap-2 text-sm"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedAuthors.includes(a._id)}
+                      onChange={() => toggleAuthor(a._id)}
+                    />
+                    <span>{a.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          </aside>
+
+          <main className="flex-1">
             {loading ? (
               <div className="text-center py-12">{t("loading")}</div>
             ) : products.length === 0 ? (
@@ -149,7 +257,14 @@ export default function ShopPage() {
                       id={product._id}
                       slug={product.slug}
                       title={product.title}
-                      images={product.images}
+                      author={product.author}
+                      images={
+                        product.images && product.images.length > 0
+                          ? product.images
+                          : product.image
+                          ? [product.image]
+                          : []
+                      }
                       price={product.price}
                     />
                   ))}

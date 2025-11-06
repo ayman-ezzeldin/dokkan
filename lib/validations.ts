@@ -56,6 +56,7 @@ export const productCreateSchema = z.object({
   title: z.string().min(2),
   slug: z.string().min(2).optional(),
   description: z.string().min(1),
+  author: z.string().min(1),
   image: z.string().url().or(z.string().min(1)),
   images: z.array(z.string().url().or(z.string().min(1))).default([]),
   price: z.number().nonnegative(),

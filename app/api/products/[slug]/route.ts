@@ -10,7 +10,10 @@ export async function GET(
     await connectDB();
     const { slug } = await params;
 
-    const product = await Product.findOne({ slug, isActive: true }).lean();
+    const product = await Product.findOne({ slug, isActive: true })
+      .select('title slug description author image images price currency categoryId tags stock createdAt')
+      .populate('author', 'name image bio')
+      .lean();
 
     if (!product) {
       return NextResponse.json(

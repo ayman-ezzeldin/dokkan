@@ -29,6 +29,7 @@ export async function GET(request: Request) {
     .sort({ createdAt: -1 })
     .skip((page - 1) * pageSize)
     .limit(pageSize)
+    .populate('author', 'name')
     .lean()
 
   return NextResponse.json({ products, page, pageSize, total }, { status: 200 })

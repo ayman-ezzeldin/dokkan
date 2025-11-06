@@ -22,7 +22,7 @@ interface SearchModalProps {
 const SearchModal = ({ children }: SearchModalProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<{ _id: string; title: string; slug: string; images?: string[] }[]>([]);
+  const [results, setResults] = useState<{ _id: string; title: string; slug: string; image?: string; images?: string[] }[]>([]);
   const [loading, setLoading] = useState(false);
   const t = useTranslations("Navbar");
   const router = useRouter();
@@ -97,7 +97,11 @@ const SearchModal = ({ children }: SearchModalProps) => {
                   >
                     <div className="flex items-center gap-3">
                       <img
-                        src={(p.images && p.images[0]) || "/images/logo.png"}
+                        src={
+                          (p.images && p.images.length > 0 && p.images[0]) ||
+                          p.image ||
+                          "/images/logo.png"
+                        }
                         alt={p.title}
                         className="w-10 h-10 rounded object-cover border"
                       />

@@ -8,6 +8,7 @@ const tabs = [
   { key: "users", label: "Users" },
   { key: "categories", label: "Categories" },
   { key: "products", label: "Products" },
+  { key: "authors", label: "Authors" },
 ];
 
 export default function AdminTabs() {
@@ -22,7 +23,7 @@ export default function AdminTabs() {
           key={t.key}
           href={
             pathname?.replace(
-              /\/admin\/(users|categories|products).*/,
+              /\/admin\/(users|categories|products|authors).*/,
               `/admin/${t.key}`
             ) || `/admin/${t.key}`
           }

@@ -30,6 +30,7 @@ type ProductRow = {
   stock: number;
   isActive: boolean;
   categoryId?: string;
+  author?: { _id: string; name: string } | string;
 };
 
 function extractErrorMessage(data: any, fallback = "Failed") {
@@ -62,9 +63,11 @@ export default function ProductsManager() {
   const [newImage, setNewImage] = useState("");
   const [newAmount, setNewAmount] = useState("");
   const [newCategoryId, setNewCategoryId] = useState("");
+  const [newAuthorId, setNewAuthorId] = useState("");
   const [categories, setCategories] = useState<{ _id: string; name: string }[]>(
     []
   );
+  const [authors, setAuthors] = useState<{ _id: string; name: string }[]>([]);
   const [open, setOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [editOpen, setEditOpen] = useState<string | null>(null);
@@ -77,6 +80,7 @@ export default function ProductsManager() {
     price: string;
     amount: string;
     categoryId: string;
+    author?: string;
   } | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
@@ -92,11 +96,15 @@ export default function ProductsManager() {
       fetch("/api/admin/categories")
         .then((r) => r.json())
         .catch(() => ({ categories: [] })),
+      fetch("/api/authors")
+        .then((r) => r.json())
+        .catch(() => ({ authors: [] })),
     ])
-      .then(([p, c]) => {
+      .then(([p, c, a]) => {
         setProducts(p.products || []);
         setTotal(p.total || 0);
         setCategories(c.categories || []);
+        setAuthors(a.authors || []);
       })
       .catch(() => toast.error("Failed to load products"))
       .finally(() => setLoading(false));
@@ -118,6 +126,7 @@ export default function ProductsManager() {
         price: Number(newPrice),
         currency: "USD",
         categoryId: newCategoryId,
+        author: newAuthorId,
         amount: Number(newAmount),
         stock: 0,
         isActive: true,
@@ -162,6 +171,12 @@ export default function ProductsManager() {
   }
 
   function startEdit(p: ProductRow) {
+    const authorId =
+      typeof p.author === "object" && p.author?._id
+        ? p.author._id
+        : typeof p.author === "string"
+        ? p.author
+        : "";
     setEdit({
       id: p._id,
       title: p.title,
@@ -170,45 +185,51 @@ export default function ProductsManager() {
       image: p.image || (p.images && p.images[0]) || "",
       price: String(p.price),
       amount: String(p.stock),
-      categoryId: "",
+      categoryId: (p as any).categoryId || "",
+      author: authorId,
     });
     setEditOpen(p._id);
   }
 
   async function saveEdit() {
     if (!edit) return;
-    const body: any = {
-      title: edit.title,
-      slug: edit.slug,
-      description: edit.description || edit.title,
-      image: edit.image,
-      price: Number(edit.price),
-      amount: Number(edit.amount),
-      stock: Number(edit.amount),
-    };
-    if (edit.categoryId) body.categoryId = edit.categoryId;
-    const res = await fetch(`/api/admin/products/${edit.id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
-    if (!res.ok) throw data;
-    setProducts((prev) =>
-      prev.map((x) =>
-        x._id === edit.id
-          ? {
-              ...x,
-              title: data.product.title,
-              slug: data.product.slug,
-              price: data.product.price,
-              stock: data.product.stock,
-            }
-          : x
-      )
-    );
-    setEditOpen(null);
-    toast.success("Product updated");
+    try {
+      const body: any = {
+        title: edit.title,
+        slug: edit.slug,
+        description: edit.description || edit.title,
+        image: edit.image,
+        price: Number(edit.price),
+        amount: Number(edit.amount),
+        stock: Number(edit.amount),
+      };
+      if (edit.categoryId) body.categoryId = edit.categoryId;
+      if (edit.author && edit.author.trim()) body.author = edit.author.trim();
+      const res = await fetch(`/api/admin/products/${edit.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (!res.ok) throw data;
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(pageSize),
+      });
+      if (q) params.set("q", q);
+      const [p, a] = await Promise.all([
+        fetch(`/api/admin/products?${params.toString()}`).then((r) => r.json()),
+        fetch("/api/authors")
+          .then((r) => r.json())
+          .catch(() => ({ authors: [] })),
+      ]);
+      setProducts(p.products || []);
+      setAuthors(a.authors || []);
+      setEditOpen(null);
+      toast.success("Product updated");
+    } catch (e: any) {
+      toast.error(extractErrorMessage(e, "Failed to update"));
+    }
   }
 
   return (
@@ -245,7 +266,7 @@ export default function ProductsManager() {
                 <textarea
                   value={newDescription}
                   onChange={(e) => setNewDescription(e.target.value)}
-                  className="h-24 border rounded px-3 py-2"
+                  className="h-24 border rounded px-3 py-2 w-full"
                 />
               </div>
               <div>
@@ -307,6 +328,21 @@ export default function ProductsManager() {
                   </SelectContent>
                 </Select>
               </div>
+              <div>
+                <div className="text-xs font-medium mb-1">Author</div>
+                <Select value={newAuthorId} onValueChange={setNewAuthorId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select author" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {authors.map((a) => (
+                      <SelectItem key={a._id} value={a._id}>
+                        {a.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button
@@ -321,7 +357,8 @@ export default function ProductsManager() {
                   !newImage ||
                   !newPrice ||
                   !newAmount ||
-                  !newCategoryId
+                  !newCategoryId ||
+                  !newAuthorId
                 }
               >
                 Create
@@ -339,6 +376,7 @@ export default function ProductsManager() {
               <th className="py-2 pr-4">Title</th>
               <th className="py-2 pr-4">Slug</th>
               <th className="py-2 pr-4">Category</th>
+              <th className="py-2 pr-4">Author</th>
               <th className="py-2 pr-4">Price</th>
               <th className="py-2 pr-4">Stock</th>
               <th className="py-2 pr-4">Active</th>
@@ -361,6 +399,13 @@ export default function ProductsManager() {
                 <td className="py-2 pr-4">{p.slug}</td>
                 <td className="py-2 pr-4">
                   {categories.find((c) => c._id === p.categoryId)?.name || "-"}
+                </td>
+                <td className="py-2 pr-4">
+                  {typeof p.author === "object" && p.author?.name
+                    ? p.author.name
+                    : typeof p.author === "string"
+                    ? p.author
+                    : "-"}
                 </td>
                 <td className="py-2 pr-4">{p.price}</td>
                 <td className="py-2 pr-4">{p.stock}</td>
@@ -395,6 +440,50 @@ export default function ProductsManager() {
                                 setEdit({ ...edit, title: e.target.value })
                               }
                             />
+                          </div>
+                          <div>
+                            <div className="text-xs font-medium mb-1">
+                              Category
+                            </div>
+                            <Select
+                              value={edit.categoryId || ""}
+                              onValueChange={(v) =>
+                                setEdit({ ...edit, categoryId: v })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select category" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {categories.map((c) => (
+                                  <SelectItem key={c._id} value={c._id}>
+                                    {c.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div>
+                            <div className="text-xs font-medium mb-1">
+                              Author
+                            </div>
+                            <Select
+                              value={edit.author || ""}
+                              onValueChange={(v) =>
+                                setEdit({ ...edit, author: v })
+                              }
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select author" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {authors.map((a) => (
+                                  <SelectItem key={a._id} value={a._id}>
+                                    {a.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
                           <div>
                             <div className="text-xs font-medium mb-1">Slug</div>

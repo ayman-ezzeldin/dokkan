@@ -4,6 +4,7 @@ export interface IProduct {
   title: string;
   slug: string;
   description: string;
+  author?: mongoose.Types.ObjectId;
   image?: string;
   images: string[];
   price: number;
@@ -19,6 +20,7 @@ const ProductSchema = new Schema<IProduct>({
   title: { type: String, required: true },
   slug: { type: String, required: true, unique: true },
   description: { type: String, required: true },
+  author: { type: Schema.Types.ObjectId, ref: 'Author', required: true },
   image: { type: String },
   images: { type: [String], default: [] },
   price: { type: Number, required: true },

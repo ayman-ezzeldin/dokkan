@@ -14,7 +14,9 @@
     "welcome": "مرحباً!",
     "exploreBooks": "استكشف كتبنا",
     "navigation": "التنقل",
-    "bookstoreName": "مكتبة الدكّان"
+    "bookstoreName": "مكتبة الدكّان",
+    "loading": "جاري التحميل...",
+    "noResults": "لم يتم العثور على نتائج"
   },
   "Hero": {
     "title": "مكتبة الدكّان",
@@ -50,7 +52,9 @@
     "shipping": "الشحن",
     "total": "الإجمالي",
     "quantity": "الكمية",
-    "remove": "إزالة"
+    "remove": "إزالة",
+    "categories": "التصنيفات",
+    "authors": "المؤلفون"
   },
   "Product": {
     "title": "تفاصيل المنتج",
