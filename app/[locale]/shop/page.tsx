@@ -3,12 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
-import Image from "next/image";
+import ProductCard from "@/components/shop/ProductCard";
+import FilterSidebar from "@/components/shop/FilterSidebar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/components/CartProvider";
-import FavoriteButton from "@/components/FavoriteButton";
 
 interface Product {
   _id: string;
@@ -33,7 +32,7 @@ export default function ShopPage() {
   const locale = useLocale();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { addToCart } = useCart();
+  const {} = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -113,15 +112,7 @@ export default function ShopPage() {
     fetchProducts();
   };
 
-  const handleAddToCart = (product: Product) => {
-    addToCart({
-      productId: product._id,
-      slug: product.slug,
-      title: product.title,
-      price: product.price,
-      image: product.images[0] || "/images/logo.png",
-    });
-  };
+  // Using ProductCard handles add-to-cart internally
 
   return (
     <div className="min-h-screen py-8 px-4">
@@ -129,70 +120,8 @@ export default function ShopPage() {
         <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
         <div className="flex flex-col lg:flex-row gap-6">
-          <aside className="lg:w-64 space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t("filterByCategory")}
-              </label>
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  setSelectedCategory(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                aria-label={t("filterByCategory")}
-              >
-                <option value="">All Categories</option>
-                {categories.map((cat) => (
-                  <option key={cat._id} value={cat._id}>
-                    {cat.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t("priceRange")}
-              </label>
-              <div className="space-y-2">
-                <Input
-                  type="number"
-                  placeholder={t("minPrice")}
-                  value={minPrice}
-                  onChange={(e) => setMinPrice(e.target.value)}
-                />
-                <Input
-                  type="number"
-                  placeholder={t("maxPrice")}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(e.target.value)}
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                {t("sortBy")}
-              </label>
-              <select
-                value={sort}
-                onChange={(e) => {
-                  setSort(e.target.value);
-                  setPage(1);
-                }}
-                className="w-full h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
-                aria-label={t("sortBy")}
-              >
-                <option value="createdAt">{t("sortNewest")}</option>
-                <option value="price">{t("sortPriceAsc")}</option>
-              </select>
-            </div>
-
-            <Button onClick={handleSearch} className="w-full">
-              {t("search")}
-            </Button>
+          <aside className="lg:w-64">
+            <FilterSidebar categories={categories} />
           </aside>
 
           <main className="flex-1">
@@ -215,63 +144,14 @@ export default function ShopPage() {
               <>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                   {products.map((product) => (
-                    <div
+                    <ProductCard
                       key={product._id}
-                      className="border rounded-lg overflow-hidden hover:shadow-lg transition-shadow relative"
-                    >
-                      <Link href={`/${locale}/product/${product.slug}`}>
-                        <div className="relative aspect-square">
-                          <Image
-                            src={product.images[0] || "/images/logo.png"}
-                            alt={product.title}
-                            fill
-                            className="object-cover"
-                          />
-                          <FavoriteButton
-                            productId={product._id}
-                            item={{
-                              productId: product._id,
-                              slug: product.slug,
-                              title: product.title,
-                              price: product.price,
-                              image: product.images[0] || "/images/logo.png",
-                            }}
-                          />
-                        </div>
-                      </Link>
-                      <div className="p-4">
-                        <Link href={`/${locale}/product/${product.slug}`}>
-                          <h3 className="font-semibold mb-2 line-clamp-2">
-                            {product.title}
-                          </h3>
-                        </Link>
-                        <p className="text-lg font-bold mb-4">
-                          {product.price} {product.currency}
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            asChild
-                            variant="outline"
-                            size="sm"
-                            className="flex-1"
-                          >
-                            <Link href={`/${locale}/product/${product.slug}`}>
-                              {t("viewDetails")}
-                            </Link>
-                          </Button>
-                          <Button
-                            size="sm"
-                            className="flex-1"
-                            onClick={() => handleAddToCart(product)}
-                            disabled={product.stock === 0}
-                          >
-                            {product.stock === 0
-                              ? t("outOfStock")
-                              : t("addToCart")}
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
+                      id={product._id}
+                      slug={product.slug}
+                      title={product.title}
+                      images={product.images}
+                      price={product.price}
+                    />
                   ))}
                 </div>
 

@@ -27,6 +27,8 @@
     "title": "Shop",
     "noProducts": "No products found",
     "loading": "Loading products...",
+    "suggestedTitle": "Suggested Products",
+    "suggestedSubtitle": "Discover our handpicked selection",
     "filterByCategory": "Filter by Category",
     "searchPlaceholder": "Search products...",
     "priceRange": "Price Range",

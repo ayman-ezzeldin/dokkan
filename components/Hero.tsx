@@ -15,9 +15,9 @@ const Hero = () => {
   }, []);
 
   return (
-    <section className="relative h-[calc(100vh-65px)] mt-3 md:mt-0 flex items-center overflow-hidden bg-background">
+    <section className="relative pb-1 flex items-center overflow-hidden bg-background min-h-[90vh]">
       <div className="max-w-7xl mx-auto px-6 w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-12 items-center min-h-screen py-20">
+        <div className="grid grid-cols-1 lg:grid-cols-2 md:gap-12 items-center ">
           {/* Text Content */}
           <div className="order-2 lg:order-1 text-center lg:text-start">
             <div

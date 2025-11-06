@@ -27,6 +27,8 @@
     "title": "المتجر",
     "noProducts": "لم يتم العثور على منتجات",
     "loading": "جاري تحميل المنتجات...",
+    "suggestedTitle": "منتجات مقترحة",
+    "suggestedSubtitle": "اكتشف تشكيلتنا المختارة بعناية",
     "filterByCategory": "تصفية حسب الفئة",
     "searchPlaceholder": "ابحث عن منتجات...",
     "priceRange": "نطاق السعر",
