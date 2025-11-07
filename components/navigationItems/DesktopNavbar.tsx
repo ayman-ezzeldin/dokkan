@@ -73,7 +73,7 @@ const DesktopNavbar = () => {
                   alt="User"
                 />
                 <AvatarFallback className="text-sm font-semibold bg-linear-to-br from-primary/20 to-primary/10">
-                  {(session.user.name || (session.user as any).firstName || "U")
+                  {(session.user.name || (session.user as any).fullName || "U")
                     .slice(0, 2)
                     .toUpperCase()}
                 </AvatarFallback>

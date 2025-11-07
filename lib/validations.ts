@@ -25,12 +25,18 @@ export const orderSchema = z.object({
 
 export type OrderInput = z.infer<typeof orderSchema>;
 
+const addressSchema = z.object({
+  province: z.string().min(1),
+  cityOrDistrict: z.string().min(1),
+  streetInfo: z.string().min(1),
+  landmark: z.string().optional(),
+});
+
 export const userCreateSchema = z.object({
-  firstName: z.string().min(1),
-  lastName: z.string().min(1),
-  phoneNumber: z.string().min(5).max(20).optional(),
+  fullName: z.string().min(1),
   email: z.string().email(),
   password: z.string().min(8),
+  phonePrimary: z.string().min(1),
 });
 
 export type UserCreateInput = z.infer<typeof userCreateSchema>;
@@ -43,11 +49,11 @@ export const loginSchema = z.object({
 export type LoginInput = z.infer<typeof loginSchema>;
 
 export const userUpdateSchema = z.object({
-  firstName: z.string().min(1).optional(),
-  lastName: z.string().min(1).optional(),
-  phoneNumber: z.string().min(5).max(20).optional().or(z.literal('').transform(() => undefined)),
+  fullName: z.string().min(1).optional(),
   email: z.string().email().optional(),
-  defaultShipping: shippingSchema.partial().optional(),
+  phonePrimary: z.string().min(1).optional(),
+  phoneSecondary: z.string().optional().or(z.literal('').transform(() => undefined)),
+  address: addressSchema.partial().optional(),
 });
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;

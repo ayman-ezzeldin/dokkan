@@ -170,5 +170,24 @@
       "browse": "تصفح الكتب",
       "contact": "اتصل بنا"
     }
+  },
+  "Account": {
+    "title": "حسابك",
+    "fullName": "الاسم الكامل",
+    "email": "البريد الإلكتروني",
+    "phonePrimary": "رقم الهاتف الأساسي",
+    "phoneSecondary": "رقم الهاتف الثانوي",
+    "address": "العنوان",
+    "province": "المحافظة",
+    "cityOrDistrict": "المدينة/الحي",
+    "streetInfo": "تفاصيل الشارع",
+    "landmark": "علامة مميزة (اختياري)",
+    "saveAddress": "حفظ العنوان",
+    "saved": "تم الحفظ",
+    "addressSaved": "تم حفظ العنوان",
+    "updateFailed": "فشل التحديث",
+    "edit": "تعديل",
+    "save": "حفظ",
+    "cancel": "إلغاء"
   }
 }

@@ -31,18 +31,16 @@ export async function PATCH(request: Request) {
 
     await connectDB()
     const updates: Record<string, any> = {}
-    if (data.firstName !== undefined) updates.firstName = data.firstName
-    if (data.lastName !== undefined) updates.lastName = data.lastName
-    if (data.phoneNumber !== undefined) updates.phoneNumber = data.phoneNumber
+    if (data.fullName !== undefined) updates.fullName = data.fullName
+    if (data.phonePrimary !== undefined) updates.phonePrimary = data.phonePrimary
+    if (data.phoneSecondary !== undefined) updates.phoneSecondary = data.phoneSecondary
     if (data.email !== undefined) updates.email = data.email.toLowerCase().trim()
+    if (data.address !== undefined) updates.address = data.address
 
     const user = await User.findOneAndUpdate(
       { email: session.user.email },
       { 
-        $set: {
-          ...updates,
-          ...(data.defaultShipping ? { defaultShipping: data.defaultShipping } : {}),
-        }
+        $set: updates
       },
       { new: true, runValidators: true }
     ).lean()

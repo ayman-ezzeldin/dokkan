@@ -180,5 +180,24 @@
       "browse": "Browse Books",
       "contact": "Contact Us"
     }
+  },
+  "Account": {
+    "title": "Your account",
+    "fullName": "Full name",
+    "email": "Email",
+    "phonePrimary": "Primary phone",
+    "phoneSecondary": "Secondary phone",
+    "address": "Address",
+    "province": "Province",
+    "cityOrDistrict": "City or District",
+    "streetInfo": "Street information",
+    "landmark": "Landmark (optional)",
+    "saveAddress": "Save Address",
+    "saved": "Saved",
+    "addressSaved": "Address saved",
+    "updateFailed": "Failed to update",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel"
   }
 }

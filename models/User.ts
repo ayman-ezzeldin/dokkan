@@ -1,48 +1,48 @@
 import mongoose, { Schema, Model } from 'mongoose';
 
-export interface IUser {
-  firstName: string;
-  lastName: string;
-  phoneNumber?: string;
-  email: string;
-  passwordHash?: string;
-  passwordSalt?: string;
-  role: 'user' | 'admin';
-  defaultShipping?: {
-    recipientName?: string;
-    province?: string;
-    cityOrDistrict?: string;
-    streetInfo?: string;
-    landmark?: string;
-    phone?: string;
-    phoneAlternate?: string;
-    whatsapp?: string;
-    notesOrBooksList?: string;
-  };
-  createdAt: Date;
+export interface IAddress {
+  province: string;
+  cityOrDistrict: string;
+  streetInfo: string;
+  landmark?: string;
 }
 
-const UserSchema = new Schema<IUser>({
-  firstName: { type: String, required: true, trim: true },
-  lastName: { type: String, required: true, trim: true },
-  phoneNumber: { type: String, trim: true },
-  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
-  passwordHash: { type: String },
-  passwordSalt: { type: String },
-  role: { type: String, enum: ['user', 'admin'], default: 'user' },
-  defaultShipping: {
-    recipientName: { type: String },
-    province: { type: String },
-    cityOrDistrict: { type: String },
-    streetInfo: { type: String },
-    landmark: { type: String },
-    phone: { type: String },
-    phoneAlternate: { type: String },
-    whatsapp: { type: String },
-    notesOrBooksList: { type: String },
+export interface IUser {
+  fullName: string;
+  email: string;
+  passwordHash: string;
+  passwordSalt: string;
+  phonePrimary: string;
+  phoneSecondary?: string;
+  role: 'user' | 'admin';
+  address?: IAddress;
+  createdAt: Date;
+  updatedAt?: Date;
+}
+
+const AddressSchema = new Schema<IAddress>(
+  {
+    province: { type: String, required: true },
+    cityOrDistrict: { type: String, required: true },
+    streetInfo: { type: String, required: true },
+    landmark: String,
   },
-  createdAt: { type: Date, default: Date.now },
-});
+  { _id: false }
+);
+
+const UserSchema = new Schema<IUser>(
+  {
+    fullName: { type: String, required: true, trim: true },
+    email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    passwordHash: { type: String, required: true },
+    passwordSalt: { type: String, required: true },
+    phonePrimary: { type: String, required: true },
+    phoneSecondary: String,
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+    address: AddressSchema,
+  },
+  { timestamps: true }
+);
 
 UserSchema.index({ email: 1 }, { unique: true });
 

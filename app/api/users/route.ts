@@ -29,9 +29,8 @@ export async function POST(request: Request) {
     const passwordHash = await scryptHash(data.password, salt);
 
     const user = await User.create({
-      firstName: data.firstName,
-      lastName: data.lastName,
-      phoneNumber: data.phoneNumber,
+      fullName: data.fullName,
+      phonePrimary: data.phonePrimary,
       email: data.email.toLowerCase().trim(),
       passwordHash,
       passwordSalt: salt,
@@ -42,9 +41,9 @@ export async function POST(request: Request) {
       {
         user: {
           _id: user._id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phoneNumber: user.phoneNumber,
+          fullName: user.fullName,
+          phonePrimary: user.phonePrimary,
+          phoneSecondary: user.phoneSecondary,
           email: user.email,
           role: user.role,
           createdAt: user.createdAt,

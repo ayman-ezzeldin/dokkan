@@ -15,8 +15,7 @@ export async function GET(request: Request) {
   const filter: any = {}
   if (q) {
     filter.$or = [
-      { firstName: { $regex: q, $options: 'i' } },
-      { lastName: { $regex: q, $options: 'i' } },
+      { fullName: { $regex: q, $options: 'i' } },
       { email: { $regex: q, $options: 'i' } },
     ]
   }

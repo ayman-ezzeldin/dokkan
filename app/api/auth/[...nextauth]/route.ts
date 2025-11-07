@@ -32,9 +32,9 @@ export const authOptions: NextAuthOptions = {
         return {
           id: user._id.toString(),
           email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          phoneNumber: user.phoneNumber,
+          fullName: user.fullName,
+          phonePrimary: user.phonePrimary,
+          phoneSecondary: user.phoneSecondary,
           role: user.role,
         } as any;
       },
@@ -44,9 +44,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.role = (user as any).role || (token as any).role || 'user';
-        (token as any).firstName = (user as any).firstName ?? (token as any).firstName;
-        (token as any).lastName = (user as any).lastName ?? (token as any).lastName;
-        (token as any).phoneNumber = (user as any).phoneNumber ?? (token as any).phoneNumber;
+        (token as any).fullName = (user as any).fullName ?? (token as any).fullName;
+        (token as any).phonePrimary = (user as any).phonePrimary ?? (token as any).phonePrimary;
+        (token as any).phoneSecondary = (user as any).phoneSecondary ?? (token as any).phoneSecondary;
       }
       return token as any;
     },
@@ -54,9 +54,9 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = (token as any).sub;
         (session.user as any).role = (token as any).role;
-        (session.user as any).firstName = (token as any).firstName;
-        (session.user as any).lastName = (token as any).lastName;
-        (session.user as any).phoneNumber = (token as any).phoneNumber;
+        (session.user as any).fullName = (token as any).fullName;
+        (session.user as any).phonePrimary = (token as any).phonePrimary;
+        (session.user as any).phoneSecondary = (token as any).phoneSecondary;
       }
       return session;
     },

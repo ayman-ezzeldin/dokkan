@@ -1,24 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations, useLocale } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 type UserLite = {
-  firstName: string;
-  lastName: string;
+  fullName: string;
   email: string;
-  phoneNumber?: string;
-  defaultShipping?: {
-    recipientName?: string;
-    province?: string;
-    cityOrDistrict?: string;
-    streetInfo?: string;
+  phonePrimary: string;
+  phoneSecondary?: string;
+  address?: {
+    province: string;
+    cityOrDistrict: string;
+    streetInfo: string;
     landmark?: string;
-    phone?: string;
-    phoneAlternate?: string;
-    whatsapp?: string;
-    notesOrBooksList?: string;
   };
 };
 
@@ -27,9 +23,17 @@ export default function AccountForm({
 }: {
   initialUser: UserLite;
 }) {
-  type EditableField = "firstName" | "lastName" | "email" | "phoneNumber";
+  const t = useTranslations("Account");
+  const locale = useLocale();
+  const isRTL = locale === "ar";
+  type EditableField = "fullName" | "email" | "phonePrimary" | "phoneSecondary";
   const [user, setUser] = useState(initialUser);
-  const [shipping, setShipping] = useState<UserLite["defaultShipping"]>(initialUser.defaultShipping || {});
+  const [address, setAddress] = useState(initialUser.address || {
+    province: "",
+    cityOrDistrict: "",
+    streetInfo: "",
+    landmark: "",
+  });
   const [editField, setEditField] = useState<null | EditableField>(null);
   const [pendingValue, setPendingValue] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,29 +63,29 @@ export default function AccountForm({
       if (!res.ok) throw new Error(data?.error || "Update failed");
       setUser((u) => ({ ...u, ...updates }));
       setEditField(null);
-      toast.success("Saved");
+      toast.success(t("saved"));
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to update";
+      const msg = e instanceof Error ? e.message : t("updateFailed");
       toast.error(msg);
     } finally {
       setLoading(false);
     }
   }
 
-  async function saveShipping() {
+  async function saveAddress() {
     setLoading(true);
     try {
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ defaultShipping: shipping }),
+        body: JSON.stringify({ address }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Update failed");
-      setUser((u) => ({ ...u, defaultShipping: shipping }));
-      toast.success("تم حفظ عنوان الشحن");
+      setUser((u) => ({ ...u, address }));
+      toast.success(t("addressSaved"));
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : "Failed to update";
+      const msg = e instanceof Error ? e.message : t("updateFailed");
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -89,10 +93,10 @@ export default function AccountForm({
   }
 
   const fields: { field: EditableField; label: string; type?: string }[] = [
-    { field: "firstName", label: "First name" },
-    { field: "lastName", label: "Last name" },
-    { field: "email", label: "Email", type: "email" },
-    { field: "phoneNumber", label: "Phone" },
+    { field: "fullName", label: t("fullName") },
+    { field: "email", label: t("email"), type: "email" },
+    { field: "phonePrimary", label: t("phonePrimary") },
+    { field: "phoneSecondary", label: t("phoneSecondary") },
   ];
 
   return (
@@ -119,7 +123,7 @@ export default function AccountForm({
                 />
                 <button
                   type="button"
-                  aria-label="Save"
+                  aria-label={t("save")}
                   className="px-1 disabled:opacity-60"
                   onClick={save}
                   disabled={loading || !pendingValue.trim()}
@@ -133,7 +137,7 @@ export default function AccountForm({
                 </button>
                 <button
                   type="button"
-                  aria-label="Cancel"
+                  aria-label={t("cancel")}
                   className="px-1"
                   onClick={cancel}
                   disabled={loading}
@@ -158,7 +162,7 @@ export default function AccountForm({
                 </span>
                 <button
                   type="button"
-                  aria-label={`Edit ${label}`}
+                  aria-label={`${t("edit")} ${label}`}
                   className="opacity-80 hover:opacity-100 px-1"
                   onClick={() => startEdit(field)}
                 >
@@ -175,22 +179,17 @@ export default function AccountForm({
         ))}
       </div>
 
-      <div className="mt-6 border-t pt-6">
-        <h3 className="text-lg font-semibold mb-3">العنوان وأرقام التواصل الافتراضية</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3" dir="rtl">
-          <Input placeholder="أدخل الاسم الثلاثي" value={shipping?.recipientName || ""} onChange={(e) => setShipping({ ...shipping, recipientName: e.target.value })} />
-          <Input placeholder="مثال: 01012345678" value={shipping?.phone || ""} onChange={(e) => setShipping({ ...shipping, phone: e.target.value })} />
-          <Input placeholder="مثال: 01087654321" value={shipping?.phoneAlternate || ""} onChange={(e) => setShipping({ ...shipping, phoneAlternate: e.target.value })} />
-          <Input placeholder="رقم واتساب" value={shipping?.whatsapp || ""} onChange={(e) => setShipping({ ...shipping, whatsapp: e.target.value })} />
-          <Input placeholder="المحافظة" value={shipping?.province || ""} onChange={(e) => setShipping({ ...shipping, province: e.target.value })} />
-          <Input placeholder="المدينة/الحي" value={shipping?.cityOrDistrict || ""} onChange={(e) => setShipping({ ...shipping, cityOrDistrict: e.target.value })} />
-          <Input placeholder="تفاصيل الشارع" value={shipping?.streetInfo || ""} onChange={(e) => setShipping({ ...shipping, streetInfo: e.target.value })} />
-          <Input placeholder="علامة مميزة (اختياري)" value={shipping?.landmark || ""} onChange={(e) => setShipping({ ...shipping, landmark: e.target.value })} />
-          <Input placeholder="ملاحظات (اختياري)" value={shipping?.notesOrBooksList || ""} onChange={(e) => setShipping({ ...shipping, notesOrBooksList: e.target.value })} />
+      <div className="mt-6 border-t pt-6" dir={isRTL ? "rtl" : "ltr"}>
+        <h3 className="text-lg font-semibold mb-3">{t("address")}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <Input placeholder={t("province")} value={address.province || ""} onChange={(e) => setAddress({ ...address, province: e.target.value })} />
+          <Input placeholder={t("cityOrDistrict")} value={address.cityOrDistrict || ""} onChange={(e) => setAddress({ ...address, cityOrDistrict: e.target.value })} />
+          <Input placeholder={t("streetInfo")} value={address.streetInfo || ""} onChange={(e) => setAddress({ ...address, streetInfo: e.target.value })} />
+          <Input placeholder={t("landmark")} value={address.landmark || ""} onChange={(e) => setAddress({ ...address, landmark: e.target.value })} />
         </div>
         <div className="mt-3">
-          <button onClick={saveShipping} className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60" disabled={loading}>
-            حفظ عنوان الشحن
+          <button onClick={saveAddress} className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60" disabled={loading}>
+            {t("saveAddress")}
           </button>
         </div>
       </div>

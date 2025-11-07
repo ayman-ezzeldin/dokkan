@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     }
 
     const token = createSessionToken(user._id.toString());
-    const response = NextResponse.json({ ok: true, user: { _id: user._id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role } }, { status: 200 });
+    const response = NextResponse.json({ ok: true, user: { _id: user._id, email: user.email, fullName: user.fullName, phonePrimary: user.phonePrimary, phoneSecondary: user.phoneSecondary, role: user.role } }, { status: 200 });
     response.headers.append('Set-Cookie', `session=${token}; HttpOnly; Path=/; SameSite=Lax; Secure=${process.env.NODE_ENV !== 'development'}; Max-Age=${60 * 60 * 24 * 7}`);
     return response;
   } catch (error: unknown) {
