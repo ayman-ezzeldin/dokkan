@@ -177,7 +177,7 @@ export default function AccountForm({
                   type="button"
                   aria-label={t("save")}
                   className="px-1 disabled:opacity-60"
-                  onClick={save}
+                  onClick={() => save()}
                   disabled={loading || !pendingValue.trim()}
                 >
                   <svg width="18" height="18" viewBox="0 0 20 20">
