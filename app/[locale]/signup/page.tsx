@@ -62,7 +62,22 @@ export default function SignupPage() {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || "Signup failed");
+        let errorMessage = data?.error || "Signup failed";
+        
+        if (data?.message) {
+          errorMessage = data.message;
+        } else if (data?.details && Array.isArray(data.details)) {
+          const validationErrors = data.details
+            .map((d: any) => {
+              const path = d.path || (Array.isArray(d.path) ? d.path.join(".") : "");
+              return `${d.message}${path ? ` (${path})` : ""}`;
+            })
+            .join(", ");
+          errorMessage = `${errorMessage}: ${validationErrors}`;
+        }
+        
+        console.error("Signup error:", { status: res.status, data });
+        throw new Error(errorMessage);
       }
       const next = params.get("next") || "/";
       const result = await signIn("credentials", {
@@ -74,7 +89,9 @@ export default function SignupPage() {
       if (result?.error) throw new Error(result.error || "Login failed");
       router.push(result?.url || next);
     } catch (err: any) {
-      setError(err.message || "Signup failed");
+      const errorMessage = err.message || "Signup failed";
+      setError(errorMessage);
+      console.error("Signup error details:", err);
     } finally {
       setLoading(false);
     }
@@ -83,7 +100,12 @@ export default function SignupPage() {
   return (
     <div className="max-w-md mx-auto p-6 space-y-4">
       <h1 className="text-2xl font-semibold">Create account</h1>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded p-3">
+          <p className="text-red-800 text-sm font-medium">Error:</p>
+          <p className="text-red-700 text-sm mt-1">{error}</p>
+        </div>
+      )}
       <form onSubmit={onSubmit} className="space-y-3">
         <Input
           placeholder="Full name"

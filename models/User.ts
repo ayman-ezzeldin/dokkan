@@ -46,7 +46,19 @@ const UserSchema = new Schema<IUser>(
 
 UserSchema.index({ email: 1 }, { unique: true });
 
-const User: Model<IUser> = mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+let User: Model<IUser>;
+if (mongoose.models.User) {
+  const existingModel = mongoose.models.User;
+  const schemaPaths = Object.keys(existingModel.schema.paths);
+  if (schemaPaths.includes('firstName') || schemaPaths.includes('lastName')) {
+    delete mongoose.models.User;
+    User = mongoose.model<IUser>('User', UserSchema);
+  } else {
+    User = existingModel;
+  }
+} else {
+  User = mongoose.model<IUser>('User', UserSchema);
+}
 
 export default User;
 

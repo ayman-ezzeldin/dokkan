@@ -15,9 +15,9 @@ export default async function AccountPage({
 }) {
   const { locale } = await params;
   const safeLocale = locale || "en";
-  const t = await getTranslations("Account");
+  const t = await getTranslations({ locale: safeLocale, namespace: "Account" });
   const session = (await getServerSession(authOptions)) as SessionLike;
-  console.log("session is : ", session.user);
+
   if (!session?.user?.email) {
     redirect(`/${safeLocale}/login?next=/${safeLocale}/account`);
   }
@@ -28,8 +28,10 @@ export default async function AccountPage({
     redirect(`/${safeLocale}/login?next=/${safeLocale}/account`);
   }
 
+  const isRTL = safeLocale === "ar";
+
   return (
-    <div className="max-w-xl mx-auto p-6 space-y-4">
+    <div className="max-w-xl mx-auto p-6 space-y-4" dir={isRTL ? "rtl" : "ltr"}>
       <h1 className="text-2xl font-semibold">{t("title")}</h1>
       <div className="pt-2">
         <AccountForm

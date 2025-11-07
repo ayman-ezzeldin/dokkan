@@ -32,6 +32,24 @@ const addressSchema = z.object({
   landmark: z.string().optional(),
 });
 
+const partialAddressSchema = z.object({
+  province: z.string().min(1).optional().or(z.literal('').transform(() => undefined)),
+  cityOrDistrict: z.string().min(1).optional().or(z.literal('').transform(() => undefined)),
+  streetInfo: z.string().min(1).optional().or(z.literal('').transform(() => undefined)),
+  landmark: z.string().optional().or(z.literal('').transform(() => undefined)),
+}).refine(
+  (data) => {
+    const hasAnyField = data.province || data.cityOrDistrict || data.streetInfo;
+    if (hasAnyField) {
+      return data.province && data.cityOrDistrict && data.streetInfo;
+    }
+    return true;
+  },
+  {
+    message: "If providing address, all required fields (province, cityOrDistrict, streetInfo) must be filled",
+  }
+);
+
 export const userCreateSchema = z.object({
   fullName: z.string().min(1),
   email: z.string().email(),
@@ -53,7 +71,7 @@ export const userUpdateSchema = z.object({
   email: z.string().email().optional(),
   phonePrimary: z.string().min(1).optional(),
   phoneSecondary: z.string().optional().or(z.literal('').transform(() => undefined)),
-  address: addressSchema.partial().optional(),
+  address: partialAddressSchema.optional(),
 });
 
 export type UserUpdateInput = z.infer<typeof userUpdateSchema>;

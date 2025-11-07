@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { ZodError } from 'zod';
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { userCreateSchema } from '@/lib/validations';
@@ -52,13 +53,41 @@ export async function POST(request: Request) {
       { status: 201 }
     );
   } catch (error: unknown) {
+    console.error("User creation error:", error);
+    
     if (error instanceof ZodError) {
       return NextResponse.json(
         { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
-    return NextResponse.json({ error: 'Failed to create user' }, { status: 500 });
+    
+    if (error instanceof mongoose.Error.ValidationError) {
+      const validationErrors = Object.values(error.errors).map(err => ({
+        path: err.path,
+        message: err.message
+      }));
+      return NextResponse.json(
+        { 
+          error: 'User validation failed', 
+          details: validationErrors,
+          message: validationErrors.map(e => `${e.path}: ${e.message}`).join(', ')
+        },
+        { status: 400 }
+      );
+    }
+    
+    if (error instanceof Error) {
+      return NextResponse.json(
+        { error: error.message || 'Failed to create user' },
+        { status: 500 }
+      );
+    }
+    
+    return NextResponse.json(
+      { error: 'Failed to create user', details: String(error) },
+      { status: 500 }
+    );
   }
 }
 

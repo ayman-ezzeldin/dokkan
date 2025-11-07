@@ -35,6 +35,7 @@ type CheckoutFormProps = {
 export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
   const t = useTranslations("Checkout");
   const locale = useLocale();
+  const isRTL = locale === "ar";
   const { cart, clearCart, removeFromCart } = useCart();
   const [loading, setLoading] = useState(false);
   const [orderId, setOrderId] = useState<string | null>(null);
@@ -52,19 +53,17 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
     e.preventDefault();
     if (cart.length === 0) return;
     if (!formData.recipientName || formData.recipientName.length < 5) {
-      return alert("من فضلك أدخل الاسم الثلاثي.");
+      return alert(t("fullNameRequired"));
     }
     if (
       !formData.province ||
       !formData.cityOrDistrict ||
       !formData.streetInfo
     ) {
-      return alert("من فضلك أكمل بيانات العنوان.");
+      return alert(t("addressRequired"));
     }
     if (!egyptPhoneRegex.test(formData.phone)) {
-      return alert(
-        "رقم الموبايل غير صالح. الرجاء إدخال رقم صحيح (مثال: 01012345678)."
-      );
+      return alert(t("invalidPhone"));
     }
     setConfirmOpen(true);
   };
@@ -93,28 +92,30 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
         const data = await res.json();
         setOrderId(data.orderId);
         clearCart();
-        toast.success(
-          "تم إنشاء الطلب! سيتم فتح واتساب لتأكيد الطلب مع خدمة العملاء."
-        );
+        toast.success(t("orderCreated"));
         setTimeout(() => {
           window.open(data.whatsappUrl, "_blank");
         }, 300);
       } else {
         const error = await res.json();
         if (error?.details && Array.isArray(error.details)) {
-          error.details.forEach((d: any) => {
-            const path = Array.isArray(d.path) ? d.path.join(".") : "";
-            toast.error(`${d.message}${path ? ` (${path})` : ""}`);
-          });
+          error.details.forEach(
+            (d: { message?: string; path?: string | string[] }) => {
+              const path = Array.isArray(d.path)
+                ? d.path.join(".")
+                : d.path || "";
+              toast.error(`${d.message || ""}${path ? ` (${path})` : ""}`);
+            }
+          );
         } else if (error?.error) {
           toast.error(error.error);
         } else {
-          toast.error("فشل إنشاء الطلب. حاول مرة أخرى.");
+          toast.error(t("orderFailed"));
         }
       }
     } catch (error) {
       console.error("Order error:", error);
-      toast.error("حدث خطأ غير متوقع.");
+      toast.error(t("unexpectedError"));
     } finally {
       setLoading(false);
       setConfirmOpen(false);
@@ -123,11 +124,12 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
 
   if (orderId) {
     return (
-      <div className="min-h-screen py-8 px-4">
+      <div className="min-h-screen py-8 px-4" dir={isRTL ? "rtl" : "ltr"}>
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-3xl font-bold mb-4">{t("orderPlaced")}</h1>
           <p className="text-lg mb-4">
-            {t("orderNumber")}: {orderId}</p>
+            {t("orderNumber")}: {orderId}
+          </p>
           <Button asChild>
             <Link href={`/${locale}/shop`}>{t("continueShopping")}</Link>
           </Button>
@@ -138,11 +140,11 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
 
   if (cart.length === 0) {
     return (
-      <div className="min-h-screen py-8 px-4">
+      <div className="min-h-screen py-8 px-4" dir={isRTL ? "rtl" : "ltr"}>
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-2xl font-bold mb-4">Cart is Empty</h1>
+          <h1 className="text-2xl font-bold mb-4">{t("cartEmpty")}</h1>
           <Button asChild>
-            <Link href={`/${locale}/shop`}>Continue Shopping</Link>
+            <Link href={`/${locale}/shop`}>{t("continueShopping")}</Link>
           </Button>
         </div>
       </div>
@@ -150,19 +152,21 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4">
+    <div className="min-h-screen py-8 px-4" dir={isRTL ? "rtl" : "ltr"}>
       <div className="max-w-7xl mx-auto">
         <h1 className="text-3xl font-bold mb-8">{t("title")}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-6" dir="rtl">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
-                <h2 className="text-xl font-semibold mb-4">بيانات الشحن</h2>
+                <h2 className="text-xl font-semibold mb-4">
+                  {t("shippingInfo")}
+                </h2>
                 <div className="space-y-4">
                   <Input
                     required
-                    placeholder="أدخل الاسم الثلاثي (مثال: محمد أحمد علي)"
+                    placeholder={t("fullNamePlaceholder")}
                     value={formData.recipientName}
                     onChange={(e) =>
                       setFormData({
@@ -173,15 +177,17 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                   />
                   <Input
                     type="tel"
-                    placeholder="مثال: 01012345678"
+                    placeholder={t("phonePlaceholder")}
                     value={formData.phone}
                     onChange={(e) =>
                       setFormData({ ...formData, phone: e.target.value })
                     }
+                    dir={isRTL ? "rtl" : "ltr"}
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
-                      placeholder="مثال: 01087654321"
+                      type="tel"
+                      placeholder={t("phoneAlternatePlaceholder")}
                       value={formData.phoneAlternate}
                       onChange={(e) =>
                         setFormData({
@@ -189,17 +195,18 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                           phoneAlternate: e.target.value,
                         })
                       }
+                      dir={isRTL ? "rtl" : "ltr"}
                     />
                   </div>
                 </div>
               </div>
 
               <div>
-                <h2 className="text-xl font-semibold mb-4">العنوان</h2>
+                <h2 className="text-xl font-semibold mb-4">{t("address")}</h2>
                 <div className="space-y-4">
                   <Input
                     required
-                    placeholder="مثال: القاهرة"
+                    placeholder={t("provincePlaceholder")}
                     value={formData.province}
                     onChange={(e) =>
                       setFormData({ ...formData, province: e.target.value })
@@ -207,7 +214,7 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                   />
                   <Input
                     required
-                    placeholder="مثال: مدينة نصر / الحي العاشر"
+                    placeholder={t("cityOrDistrictPlaceholder")}
                     value={formData.cityOrDistrict}
                     onChange={(e) =>
                       setFormData({
@@ -218,27 +225,17 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                   />
                   <Input
                     required
-                    placeholder="مثال: شارع 9 - عقار 12 - الدور 3 - شقة 301"
+                    placeholder={t("streetInfoPlaceholder")}
                     value={formData.streetInfo}
                     onChange={(e) =>
                       setFormData({ ...formData, streetInfo: e.target.value })
                     }
                   />
                   <Input
-                    placeholder="مثال: قرب مسجد الرحمة أو بجوار صيدلية النصر"
+                    placeholder={t("landmarkPlaceholder")}
                     value={formData.landmark}
                     onChange={(e) =>
                       setFormData({ ...formData, landmark: e.target.value })
-                    }
-                  />
-                  <Input
-                    placeholder="اكتب أسماء الكتب المطلوبة أو ملاحظات للحجز"
-                    value={formData.notesOrBooksList}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        notesOrBooksList: e.target.value,
-                      })
                     }
                   />
                 </div>
@@ -250,26 +247,23 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                 className="w-full"
                 disabled={loading}
               >
-                {loading ? "Processing..." : t("placeOrder")}
+                {loading ? t("processing") : t("placeOrder")}
               </Button>
             </form>
             <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
-              <DialogContent>
+              <DialogContent dir={isRTL ? "rtl" : "ltr"}>
                 <DialogHeader>
-                  <DialogTitle>
-                    سيتم الآن إرسال تفاصيل طلبك إلى خدمة العملاء على واتساب. هل
-                    تريد المتابعة؟
-                  </DialogTitle>
+                  <DialogTitle>{t("confirmDialogTitle")}</DialogTitle>
                 </DialogHeader>
                 <DialogFooter>
                   <Button
                     variant="outline"
                     onClick={() => setConfirmOpen(false)}
                   >
-                    إلغاء
+                    {t("cancel")}
                   </Button>
                   <Button onClick={submitOrder} disabled={loading}>
-                    متابعة
+                    {t("continue")}
                   </Button>
                 </DialogFooter>
               </DialogContent>
@@ -302,7 +296,7 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
                       type="button"
                       onClick={() => removeFromCart(item.productId)}
                       className="text-md text-gray-300 hover:underline cursor-pointer"
-                      aria-label="Remove"
+                      aria-label={t("remove")}
                     >
                       x
                     </button>
@@ -330,4 +324,3 @@ export default function CheckoutForm({ defaultFormData }: CheckoutFormProps) {
     </div>
   );
 }
-

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -28,15 +28,18 @@ export default function AccountForm({
   const isRTL = locale === "ar";
   type EditableField = "fullName" | "email" | "phonePrimary" | "phoneSecondary";
   const [user, setUser] = useState(initialUser);
-  const [address, setAddress] = useState(initialUser.address || {
-    province: "",
-    cityOrDistrict: "",
-    streetInfo: "",
-    landmark: "",
-  });
+  const [address, setAddress] = useState(
+    initialUser.address || {
+      province: "",
+      cityOrDistrict: "",
+      streetInfo: "",
+      landmark: "",
+    }
+  );
   const [editField, setEditField] = useState<null | EditableField>(null);
   const [pendingValue, setPendingValue] = useState("");
   const [loading, setLoading] = useState(false);
+  const lastSavedAddress = useRef(JSON.stringify(initialUser.address || {}));
 
   function startEdit(field: EditableField) {
     setEditField(field);
@@ -47,13 +50,17 @@ export default function AccountForm({
     setEditField(null);
   }
 
-  async function save() {
+  async function save(field?: EditableField, value?: string) {
+    const fieldToSave = field || editField;
+    const valueToSave = value !== undefined ? value : pendingValue;
+
+    if (!fieldToSave || !valueToSave.trim()) return;
+
     setLoading(true);
     try {
       const updates: Partial<Record<EditableField, string>> = {};
-      if (editField) {
-        updates[editField] = pendingValue;
-      }
+      updates[fieldToSave] = valueToSave;
+
       const res = await fetch("/api/account", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
@@ -62,7 +69,9 @@ export default function AccountForm({
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error || "Update failed");
       setUser((u) => ({ ...u, ...updates }));
-      setEditField(null);
+      if (fieldToSave === editField) {
+        setEditField(null);
+      }
       toast.success(t("saved"));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("updateFailed");
@@ -72,7 +81,26 @@ export default function AccountForm({
     }
   }
 
+  function handleBlur(field: EditableField) {
+    if (
+      editField === field &&
+      pendingValue.trim() &&
+      pendingValue !== (user[field] || "")
+    ) {
+      save(field, pendingValue);
+    }
+  }
+
   async function saveAddress() {
+    if (
+      !address.province?.trim() ||
+      !address.cityOrDistrict?.trim() ||
+      !address.streetInfo?.trim()
+    ) {
+      toast.error(t("addressRequired"));
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch("/api/account", {
@@ -81,14 +109,34 @@ export default function AccountForm({
         body: JSON.stringify({ address }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error || "Update failed");
+      if (!res.ok) {
+        let errorMsg = data?.error || t("updateFailed");
+        if (data?.message) {
+          errorMsg = data.message;
+        } else if (data?.details && Array.isArray(data.details)) {
+          const details = data.details
+            .map((d: any) => d.message || `${d.path}: ${d.message}`)
+            .join(", ");
+          errorMsg = `${errorMsg}: ${details}`;
+        }
+        throw new Error(errorMsg);
+      }
       setUser((u) => ({ ...u, address }));
+      lastSavedAddress.current = JSON.stringify(address);
       toast.success(t("addressSaved"));
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : t("updateFailed");
       toast.error(msg);
+      console.error("Address save error:", e);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleAddressBlur() {
+    const currentAddressStr = JSON.stringify(address);
+    if (currentAddressStr !== lastSavedAddress.current) {
+      saveAddress();
     }
   }
 
@@ -112,12 +160,16 @@ export default function AccountForm({
                   value={pendingValue}
                   type={type || "text"}
                   onChange={(e) => setPendingValue(e.target.value)}
+                  onBlur={() => handleBlur(field)}
                   autoFocus
                   disabled={loading}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && !loading && pendingValue.trim()) {
                       e.preventDefault();
                       save();
+                    }
+                    if (e.key === "Escape") {
+                      cancel();
                     }
                   }}
                 />
@@ -182,15 +234,38 @@ export default function AccountForm({
       <div className="mt-6 border-t pt-6" dir={isRTL ? "rtl" : "ltr"}>
         <h3 className="text-lg font-semibold mb-3">{t("address")}</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <Input placeholder={t("province")} value={address.province || ""} onChange={(e) => setAddress({ ...address, province: e.target.value })} />
-          <Input placeholder={t("cityOrDistrict")} value={address.cityOrDistrict || ""} onChange={(e) => setAddress({ ...address, cityOrDistrict: e.target.value })} />
-          <Input placeholder={t("streetInfo")} value={address.streetInfo || ""} onChange={(e) => setAddress({ ...address, streetInfo: e.target.value })} />
-          <Input placeholder={t("landmark")} value={address.landmark || ""} onChange={(e) => setAddress({ ...address, landmark: e.target.value })} />
-        </div>
-        <div className="mt-3">
-          <button onClick={saveAddress} className="px-4 py-2 rounded bg-primary text-white disabled:opacity-60" disabled={loading}>
-            {t("saveAddress")}
-          </button>
+          <Input
+            placeholder={t("province")}
+            value={address.province || ""}
+            onChange={(e) =>
+              setAddress({ ...address, province: e.target.value })
+            }
+            onBlur={handleAddressBlur}
+          />
+          <Input
+            placeholder={t("cityOrDistrict")}
+            value={address.cityOrDistrict || ""}
+            onChange={(e) =>
+              setAddress({ ...address, cityOrDistrict: e.target.value })
+            }
+            onBlur={handleAddressBlur}
+          />
+          <Input
+            placeholder={t("streetInfo")}
+            value={address.streetInfo || ""}
+            onChange={(e) =>
+              setAddress({ ...address, streetInfo: e.target.value })
+            }
+            onBlur={handleAddressBlur}
+          />
+          <Input
+            placeholder={t("landmark")}
+            value={address.landmark || ""}
+            onChange={(e) =>
+              setAddress({ ...address, landmark: e.target.value })
+            }
+            onBlur={handleAddressBlur}
+          />
         </div>
       </div>
     </div>
