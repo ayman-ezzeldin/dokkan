@@ -81,7 +81,7 @@ const Hero = () => {
               {/* Main Image */}
               <div className="relative z-20 rounded-2xl">
                 <Image
-                  src="/images/heroImg.png"
+                  src="/images/landingImg.png"
                   alt="Bookstore Hero"
                   width={500}
                   height={600}
